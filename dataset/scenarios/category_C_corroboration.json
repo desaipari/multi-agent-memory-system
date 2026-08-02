@@ -1,0 +1,108 @@
+{
+  "category": "C",
+  "category_name": "Corroboration",
+  "source_dataset": "incident_event_log.csv",
+  "source_archive": "incident+management+process+enriched+event+log.zip",
+  "data_integrity_note": "Incident IDs, fact values, updater labels and timestamps are copied from the uploaded dataset. Agent labels, confidence scores and expected system actions are scenario annotations for the capstone and are not original dataset columns.",
+  "scenarios": [
+    {
+      "scenario_id": "C_001",
+      "turns": [
+        {
+          "entity": "INC0025734",
+          "fact_type": "priority",
+          "value": "2 - High",
+          "sys_updated_at": "4/5/2016 09:51",
+          "sys_updated_by": "Updated by 44",
+          "source_dataset": "incident_event_log.csv",
+          "turn": 1,
+          "agent": "delivery_agent",
+          "confidence": 0.84
+        },
+        {
+          "entity": "INC0025734",
+          "fact_type": "priority",
+          "value": "2 - High",
+          "sys_updated_at": "4/5/2016 10:03",
+          "sys_updated_by": "Updated by 494",
+          "source_dataset": "incident_event_log.csv",
+          "turn": 2,
+          "agent": "coordinator_agent",
+          "confidence": 0.9
+        }
+      ],
+      "ground_truth": {
+        "contradiction_expected": false,
+        "expected_action": "increase_confidence",
+        "corroborated_value": "2 - High"
+      },
+      "dataset_note": "Repeated identical priority observations are exact dataset rows."
+    },
+    {
+      "scenario_id": "C_002",
+      "turns": [
+        {
+          "entity": "INC0007236",
+          "fact_type": "incident_state",
+          "value": "New",
+          "sys_updated_at": "15/3/2016 11:50",
+          "sys_updated_by": "Updated by 88",
+          "source_dataset": "incident_event_log.csv",
+          "turn": 1,
+          "agent": "intake_agent",
+          "confidence": 0.82
+        },
+        {
+          "entity": "INC0007236",
+          "fact_type": "incident_state",
+          "value": "New",
+          "sys_updated_at": "15/3/2016 15:28",
+          "sys_updated_by": "Updated by 214",
+          "source_dataset": "incident_event_log.csv",
+          "turn": 2,
+          "agent": "delivery_agent",
+          "confidence": 0.88
+        }
+      ],
+      "ground_truth": {
+        "contradiction_expected": false,
+        "expected_action": "increase_confidence",
+        "corroborated_value": "New"
+      },
+      "dataset_note": "Repeated identical state observations are exact dataset rows."
+    },
+    {
+      "scenario_id": "C_003",
+      "turns": [
+        {
+          "entity": "INC0019396",
+          "fact_type": "assignment_group",
+          "value": "Group 66",
+          "sys_updated_at": "14/4/2016 20:42",
+          "sys_updated_by": "Updated by 908",
+          "source_dataset": "incident_event_log.csv",
+          "turn": 1,
+          "agent": "intake_agent",
+          "confidence": 0.83
+        },
+        {
+          "entity": "INC0019396",
+          "fact_type": "assignment_group",
+          "value": "Group 66",
+          "sys_updated_at": "14/4/2016 21:08",
+          "sys_updated_by": "Updated by 278",
+          "source_dataset": "incident_event_log.csv",
+          "turn": 2,
+          "agent": "coordinator_agent",
+          "confidence": 0.89
+        }
+      ],
+      "ground_truth": {
+        "contradiction_expected": false,
+        "expected_action": "increase_confidence",
+        "corroborated_value": "Group 66"
+      },
+      "dataset_note": "Repeated identical assignment-group observations are exact dataset rows."
+    }
+  ]
+}
