@@ -1,7 +1,8 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import "./App.css"
+import { memoryApi } from "./api"
 
-const facts = [
+const fallbackFacts = [
   {
     id: 1,
     incident: "INC0000001",
@@ -71,12 +72,104 @@ const activities = [
   "Coordinator Agent updated an assignment group",
 ]
 
+function formatAgentName(agentId) {
+  if (!agentId) return "Unknown Agent"
+
+  const names = {
+    intake_agent: "Intake Agent",
+    delivery_agent: "Delivery Agent",
+    billing_ops_agent: "Billing/Ops Agent",
+    coordinator_agent: "Coordinator Agent",
+    agent_1: "Agent 1",
+  }
+
+  return (
+    names[agentId] ||
+    agentId
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ")
+  )
+}
+
+function formatTime(timestamp) {
+  if (!timestamp) return "-"
+
+  const date = new Date(timestamp)
+
+  if (Number.isNaN(date.getTime())) {
+    return timestamp
+  }
+
+  return date.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+}
+
 function App() {
   const [incidentFilter, setIncidentFilter] = useState("All")
   const [agentFilter, setAgentFilter] = useState("All")
+  const [factTypeFilter, setFactTypeFilter] = useState("All")
+  const [searchText, setSearchText] = useState("")
+
   const [showInput, setShowInput] = useState(false)
   const [message, setMessage] = useState("")
   const [history, setHistory] = useState([])
+
+  const [liveFacts, setLiveFacts] = useState([])
+  const [backendOnline, setBackendOnline] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [lastUpdated, setLastUpdated] = useState("Not connected")
+
+  const loadBackendData = async () => {
+    try {
+      setLoading(true)
+
+      const health = await memoryApi.checkHealth()
+      setBackendOnline(health.status === "running")
+
+      const data = await memoryApi.getAllFacts()
+      setLiveFacts(data.facts || [])
+
+      setLastUpdated(
+        new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      )
+    } catch (error) {
+      console.error("Backend connection failed:", error)
+      setBackendOnline(false)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadBackendData()
+  }, [])
+
+  const transformedLiveFacts = liveFacts.map((fact, index) => ({
+    id: fact.fact_id || index,
+    incident: fact.entity || "Unknown",
+    type: fact.fact_type || "Unknown",
+    value: fact.value || "-",
+    agent: formatAgentName(fact.agent_id),
+    confidence: Math.round((fact.confidence || 0) * 100),
+    status:
+      fact.status?.toLowerCase() === "contested"
+        ? "Contested"
+        : fact.status
+          ? fact.status.charAt(0).toUpperCase() + fact.status.slice(1)
+          : "Active",
+    updated: formatTime(fact.timestamp),
+  }))
+
+  const facts =
+    backendOnline && transformedLiveFacts.length > 0
+      ? transformedLiveFacts
+      : fallbackFacts
 
   const filteredFacts = facts.filter((fact) => {
     const incidentMatches =
@@ -85,8 +178,41 @@ function App() {
     const agentMatches =
       agentFilter === "All" || fact.agent === agentFilter
 
-    return incidentMatches && agentMatches
+    const factTypeMatches =
+      factTypeFilter === "All" || fact.type === factTypeFilter
+
+    const searchMatches =
+      !searchText.trim() ||
+      fact.incident.toLowerCase().includes(searchText.toLowerCase())
+
+    return (
+      incidentMatches &&
+      agentMatches &&
+      factTypeMatches &&
+      searchMatches
+    )
   })
+
+  const totalFacts = facts.length
+
+  const activeFacts = facts.filter(
+    (fact) => fact.status.toLowerCase() === "active"
+  ).length
+
+  const contestedFacts = facts.filter(
+    (fact) => fact.status.toLowerCase() === "contested"
+  ).length
+
+  const averageConfidence =
+    totalFacts > 0
+      ? Math.round(
+          facts.reduce((sum, fact) => sum + fact.confidence, 0) / totalFacts
+        )
+      : 0
+
+  const incidentOptions = [...new Set(facts.map((fact) => fact.incident))]
+  const agentOptions = [...new Set(facts.map((fact) => fact.agent))]
+  const factTypeOptions = [...new Set(facts.map((fact) => fact.type))]
 
   const sendMessage = () => {
     if (!message.trim()) return
@@ -107,6 +233,7 @@ function App() {
       <aside className="sidebar">
         <div className="brand">
           <div className="brand-icon">M</div>
+
           <div>
             <h2>MAMS</h2>
             <span>IT Incident System</span>
@@ -126,9 +253,10 @@ function App() {
 
         <div className="profile">
           <div className="avatar">S</div>
+
           <div>
             <strong>Sneha</strong>
-            <span>Person C · Frontend</span>
+            <span>Frontend</span>
           </div>
         </div>
       </aside>
@@ -137,6 +265,7 @@ function App() {
         <header className="topbar">
           <div>
             <h1>Multi-Agent Shared Memory System</h1>
+
             <p>
               Confidence-aware memory, contradiction detection and conflict
               resolution
@@ -144,8 +273,17 @@ function App() {
           </div>
 
           <div className="topbar-actions">
-            <span className="online-status">● System Online</span>
-            <span className="updated-time">Last updated: 10:24 AM</span>
+            <span
+              className={
+                backendOnline ? "online-status" : "health-pending"
+              }
+            >
+              ● {backendOnline ? "System Online" : "Backend Offline"}
+            </span>
+
+            <span className="updated-time">
+              Last updated: {lastUpdated}
+            </span>
 
             <button
               className="input-button"
@@ -154,7 +292,13 @@ function App() {
               + Upload / Input
             </button>
 
-            <button className="refresh-button">↻</button>
+            <button
+              className="refresh-button"
+              onClick={loadBackendData}
+              title="Refresh data"
+            >
+              ↻
+            </button>
           </div>
         </header>
 
@@ -162,25 +306,33 @@ function App() {
           <div className="stats-grid">
             <article className="stat-card blue">
               <span>Total Facts</span>
-              <strong>1,248</strong>
-              <small>Static Week 1 demo</small>
+              <strong>{totalFacts}</strong>
+
+              <small>
+                {backendOnline ? "Live backend data" : "Static Week 1 demo"}
+              </small>
             </article>
 
             <article className="stat-card green">
               <span>Active Facts</span>
-              <strong>1,102</strong>
-              <small>88.3% of stored facts</small>
+              <strong>{activeFacts}</strong>
+
+              <small>
+                {totalFacts > 0
+                  ? `${Math.round((activeFacts / totalFacts) * 100)}% of stored facts`
+                  : "No stored facts"}
+              </small>
             </article>
 
             <article className="stat-card orange">
               <span>Contested Facts</span>
-              <strong>38</strong>
+              <strong>{contestedFacts}</strong>
               <small>Require conflict handling</small>
             </article>
 
             <article className="stat-card purple">
               <span>Average Confidence</span>
-              <strong>86%</strong>
+              <strong>{averageConfidence}%</strong>
               <small>Across all source agents</small>
             </article>
           </div>
@@ -190,11 +342,19 @@ function App() {
               <section className="panel filter-panel">
                 <label>
                   Search incident
-                  <input placeholder="Search by incident ID..." />
+
+                  <input
+                    placeholder="Search by incident ID..."
+                    value={searchText}
+                    onChange={(event) =>
+                      setSearchText(event.target.value)
+                    }
+                  />
                 </label>
 
                 <label>
                   Incident
+
                   <select
                     value={incidentFilter}
                     onChange={(event) =>
@@ -202,39 +362,50 @@ function App() {
                     }
                   >
                     <option value="All">All Incidents</option>
-                    <option value="INC0000001">INC0000001</option>
-                    <option value="INC0000045">INC0000045</option>
-                    <option value="INC0000072">INC0000072</option>
+
+                    {incidentOptions.map((incident) => (
+                      <option key={incident} value={incident}>
+                        {incident}
+                      </option>
+                    ))}
                   </select>
                 </label>
 
                 <label>
                   Fact type
-                  <select>
-                    <option>All Types</option>
-                    <option>priority</option>
-                    <option>state</option>
-                    <option>assignment_group</option>
-                    <option>urgency</option>
-                    <option>category</option>
+
+                  <select
+                    value={factTypeFilter}
+                    onChange={(event) =>
+                      setFactTypeFilter(event.target.value)
+                    }
+                  >
+                    <option value="All">All Types</option>
+
+                    {factTypeOptions.map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))}
                   </select>
                 </label>
 
                 <label>
                   Source agent
+
                   <select
                     value={agentFilter}
-                    onChange={(event) => setAgentFilter(event.target.value)}
+                    onChange={(event) =>
+                      setAgentFilter(event.target.value)
+                    }
                   >
                     <option value="All">All Agents</option>
-                    <option value="Intake Agent">Intake Agent</option>
-                    <option value="Delivery Agent">Delivery Agent</option>
-                    <option value="Billing/Ops Agent">
-                      Billing/Ops Agent
-                    </option>
-                    <option value="Coordinator Agent">
-                      Coordinator Agent
-                    </option>
+
+                    {agentOptions.map((agent) => (
+                      <option key={agent} value={agent}>
+                        {agent}
+                      </option>
+                    ))}
                   </select>
                 </label>
               </section>
@@ -243,10 +414,18 @@ function App() {
                 <div className="panel-heading">
                   <div>
                     <h2>Memory State</h2>
-                    <p>Current facts stored by the agent system</p>
+
+                    <p>
+                      {loading
+                        ? "Loading memory data..."
+                        : backendOnline
+                          ? "Live facts stored by the memory service"
+                          : "Showing fallback Week 1 data"}
+                    </p>
                   </div>
+
                   <span className="conflict-alert">
-                    ⚠ 2 conflicts detected
+                    ⚠ {contestedFacts} conflicts detected
                   </span>
                 </div>
 
@@ -265,52 +444,67 @@ function App() {
                     </thead>
 
                     <tbody>
-                      {filteredFacts.map((fact) => (
-                        <tr
-                          key={fact.id}
-                          className={
-                            fact.status === "Contested"
-                              ? "contested-row"
-                              : ""
-                          }
-                        >
-                          <td className="incident-id">{fact.incident}</td>
-                          <td>{fact.type}</td>
-                          <td>{fact.value}</td>
-                          <td>
-                            <span className="agent-badge">
-                              {fact.agent}
-                            </span>
-                          </td>
-                          <td>
-                            <div className="confidence">
-                              <span>{fact.confidence}%</span>
-                              <div className="confidence-track">
-                                <div
-                                  className={`confidence-fill ${
-                                    fact.confidence >= 80
-                                      ? "high"
-                                      : fact.confidence >= 60
-                                        ? "medium"
-                                        : "low"
-                                  }`}
-                                  style={{
-                                    width: `${fact.confidence}%`,
-                                  }}
-                                />
-                              </div>
-                            </div>
-                          </td>
-                          <td>
-                            <span
-                              className={`status-badge ${fact.status.toLowerCase()}`}
-                            >
-                              {fact.status}
-                            </span>
-                          </td>
-                          <td>{fact.updated}</td>
+                      {filteredFacts.length === 0 ? (
+                        <tr>
+                          <td colSpan="7">No facts found.</td>
                         </tr>
-                      ))}
+                      ) : (
+                        filteredFacts.map((fact) => (
+                          <tr
+                            key={fact.id}
+                            className={
+                              fact.status === "Contested"
+                                ? "contested-row"
+                                : ""
+                            }
+                          >
+                            <td className="incident-id">
+                              {fact.incident}
+                            </td>
+
+                            <td>{fact.type}</td>
+
+                            <td>{fact.value}</td>
+
+                            <td>
+                              <span className="agent-badge">
+                                {fact.agent}
+                              </span>
+                            </td>
+
+                            <td>
+                              <div className="confidence">
+                                <span>{fact.confidence}%</span>
+
+                                <div className="confidence-track">
+                                  <div
+                                    className={`confidence-fill ${
+                                      fact.confidence >= 80
+                                        ? "high"
+                                        : fact.confidence >= 60
+                                          ? "medium"
+                                          : "low"
+                                    }`}
+                                    style={{
+                                      width: `${fact.confidence}%`,
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            </td>
+
+                            <td>
+                              <span
+                                className={`status-badge ${fact.status.toLowerCase()}`}
+                              >
+                                {fact.status}
+                              </span>
+                            </td>
+
+                            <td>{fact.updated}</td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -322,27 +516,33 @@ function App() {
                     <h2>Review Queue</h2>
                     <p>Conflicts that require human attention</p>
                   </div>
-                  <span className="queue-count">2 pending</span>
+
+                  <span className="queue-count">
+                    {contestedFacts} pending
+                  </span>
                 </div>
 
                 <div className="review-list">
-                  <div className="review-item">
-                    <div>
-                      <strong>INC0000001 · priority</strong>
-                      <p>2-High versus 3-Medium</p>
-                    </div>
-                    <span className="confidence-gap">27% gap</span>
-                    <button>Review</button>
-                  </div>
+                  {contestedFacts === 0 ? (
+                    <p>No conflicts currently require review.</p>
+                  ) : (
+                    <>
+                      <div className="review-item">
+                        <div>
+                          <strong>Conflict Review</strong>
+                          <p>
+                            Review contested memory facts from connected agents
+                          </p>
+                        </div>
 
-                  <div className="review-item">
-                    <div>
-                      <strong>INC0000045 · state</strong>
-                      <p>Resolved versus Reopened</p>
-                    </div>
-                    <span className="confidence-gap">6% gap</span>
-                    <button>Review</button>
-                  </div>
+                        <span className="confidence-gap">
+                          {contestedFacts} pending
+                        </span>
+
+                        <button>Review</button>
+                      </div>
+                    </>
+                  )}
                 </div>
               </section>
             </div>
@@ -355,6 +555,7 @@ function App() {
                   {activities.map((activity, index) => (
                     <div className="activity-item" key={activity}>
                       <span className={`activity-dot dot-${index}`} />
+
                       <div>
                         <p>{activity}</p>
                         <small>{10 + index}:2{index} AM</small>
@@ -370,7 +571,7 @@ function App() {
                 <div className="agent-overview">
                   <div className="donut">
                     <div>
-                      <strong>1,248</strong>
+                      <strong>{totalFacts}</strong>
                       <span>Total Facts</span>
                     </div>
                   </div>
@@ -378,19 +579,22 @@ function App() {
                   <ul>
                     <li>
                       <span className="legend blue-dot" />
-                      Intake Agent <strong>32%</strong>
+                      Intake Agent
                     </li>
+
                     <li>
                       <span className="legend green-dot" />
-                      Delivery Agent <strong>28%</strong>
+                      Delivery Agent
                     </li>
+
                     <li>
                       <span className="legend orange-dot" />
-                      Billing/Ops <strong>22%</strong>
+                      Billing/Ops
                     </li>
+
                     <li>
                       <span className="legend purple-dot" />
-                      Coordinator <strong>18%</strong>
+                      Coordinator
                     </li>
                   </ul>
                 </div>
@@ -401,19 +605,39 @@ function App() {
 
                 <div className="health-list">
                   <p>
-                    Dashboard <span className="health-online">● Online</span>
+                    Dashboard{" "}
+                    <span className="health-online">● Online</span>
                   </p>
+
                   <p>
                     Memory Service{" "}
-                    <span className="health-pending">● Pending</span>
+                    <span
+                      className={
+                        backendOnline
+                          ? "health-online"
+                          : "health-pending"
+                      }
+                    >
+                      ● {backendOnline ? "Online" : "Offline"}
+                    </span>
                   </p>
+
                   <p>
-                    Agent Pipeline{" "}
-                    <span className="health-pending">● Pending</span>
+                    Qdrant{" "}
+                    <span className="health-online">● Running</span>
                   </p>
+
                   <p>
                     Database{" "}
-                    <span className="health-pending">● Pending</span>
+                    <span
+                      className={
+                        backendOnline
+                          ? "health-online"
+                          : "health-pending"
+                      }
+                    >
+                      ● {backendOnline ? "Connected" : "Pending"}
+                    </span>
                   </p>
                 </div>
               </section>
@@ -428,7 +652,7 @@ function App() {
             <div className="drawer-header">
               <div>
                 <h2>Upload or Add Incident</h2>
-                <p>Week 1 uses static input simulation</p>
+                <p>Manual incident input</p>
               </div>
 
               <button
@@ -441,6 +665,7 @@ function App() {
 
             <label>
               Processing agent
+
               <select>
                 <option>Intake Agent</option>
                 <option>Delivery Agent</option>
@@ -451,6 +676,7 @@ function App() {
 
             <label>
               Source
+
               <select>
                 <option>manual_input</option>
                 <option>ticket_intake.csv</option>
@@ -461,9 +687,12 @@ function App() {
 
             <label>
               Incident update
+
               <textarea
                 value={message}
-                onChange={(event) => setMessage(event.target.value)}
+                onChange={(event) =>
+                  setMessage(event.target.value)
+                }
                 placeholder="Example: INC0000001 has priority 2-High"
                 rows="5"
               />
@@ -474,7 +703,10 @@ function App() {
               <input type="file" accept=".csv" />
             </label>
 
-            <button className="send-button" onClick={sendMessage}>
+            <button
+              className="send-button"
+              onClick={sendMessage}
+            >
               Send Input
             </button>
 
@@ -482,10 +714,15 @@ function App() {
               <h3>Input History</h3>
 
               {history.length === 0 ? (
-                <p className="empty-history">No input sent yet.</p>
+                <p className="empty-history">
+                  No input sent yet.
+                </p>
               ) : (
                 history.map((item) => (
-                  <div className="history-message" key={item.id}>
+                  <div
+                    className="history-message"
+                    key={item.id}
+                  >
                     <small>Manual input</small>
                     <p>{item.text}</p>
                   </div>
