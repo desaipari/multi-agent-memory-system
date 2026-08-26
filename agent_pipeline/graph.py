@@ -1,116 +1,158 @@
 from langgraph.graph import StateGraph, END
 from typing import TypedDict, Optional
-from agents.intake_agent import extract_fact, write_to_memory as intake_write
-from agents.delivery_agent import read_from_memory, generate_recommendation, write_to_memory as delivery_write
+from agents.intake_agent import extract_and_store
+from agents.delivery_agent import process_incident
+from agents.billing_agent import extract_and_store_billing
+from agents.coordinator_agent import process_flagged_conflicts
 import json
+import os
+import requests
+
+MEMORY_SERVICE_URL = os.getenv("MEMORY_SERVICE_URL", "http://10.125.5.158:8000")
+
 
 class AgentState(TypedDict):
     input_text: str
-    entity: Optional[str]
-    intake_fact: Optional[dict]
-    delivery_fact: Optional[dict]
+    source_file: Optional[str]
+    agent_role: str
+    extracted_fact: Optional[dict]
+    incident_id: Optional[str]
+    memory_response: Optional[dict]
+    recommendation: Optional[str]
+    contradiction_detected: bool
+    contradiction_details: Optional[dict]
+    conflicts_resolved: int
     status: str
     error: Optional[str]
 
 
 def intake_node(state: AgentState) -> AgentState:
-    """Intake Agent: extract a fact from text and write it to memory."""
-    print(f"\n[Intake Agent] Processing: {state['input_text']}")
-
-    fact = extract_fact(state["input_text"])
-
-    if not fact:
+    print(f"\n[INTAKE] Processing: {state['input_text'][:80]}...")
+    result = extract_and_store(state["input_text"], "intake_agent", state.get("source_file"))
+    if result["success"]:
+        state["extracted_fact"] = result["fact"]
+        state["memory_response"] = result["memory_response"]
+        state["incident_id"] = result["fact"]["entity"]
+        state["contradiction_detected"] = result["contradiction_detected"]
+        state["status"] = "intake_complete"
+    else:
         state["status"] = "intake_failed"
-        state["error"] = "Intake extraction failed"
-        print("[Intake Agent] Extraction failed")
-        return state
+        state["error"] = result.get("error", "Intake failed")
+    return state
 
-    print(f"[Intake Agent] Extracted: {json.dumps(fact, indent=2)}")
 
-    write_result = intake_write(fact, source_file="chat_input")
-    if not write_result:
-        state["status"] = "intake_write_failed"
-        state["error"] = "Failed to write intake fact to memory"
-        print("[Intake Agent] Write to memory failed")
-        return state
-
-    state["entity"] = fact["entity"]
-    state["intake_fact"] = fact
-    state["status"] = "intake_complete"
-    print(f"[Intake Agent] Written to memory: fact_id={write_result.get('fact_id')}")
+def billing_node(state: AgentState) -> AgentState:
+    print(f"\n[BILLING] Processing: {state['input_text'][:80]}...")
+    result = extract_and_store_billing(state["input_text"], state.get("source_file", "field_reports.csv"))
+    if result["success"]:
+        state["extracted_fact"] = result["fact"]
+        state["memory_response"] = result["memory_response"]
+        state["incident_id"] = result["fact"]["entity"]
+        state["contradiction_detected"] = result["contradiction_detected"]
+        state["status"] = "billing_complete"
+    else:
+        state["status"] = "billing_failed"
+        state["error"] = result.get("error", "Billing failed")
     return state
 
 
 def delivery_node(state: AgentState) -> AgentState:
-    """Delivery Agent: read current facts, generate a recommendation, write it back."""
-    entity = state.get("entity")
-    if not entity:
-        state["status"] = "delivery_skipped"
-        state["error"] = "No entity available for Delivery Agent"
-        print("[Delivery Agent] Skipped — no entity")
+    if state["status"] in ["intake_failed", "billing_failed"]:
+        print("[DELIVERY] Skipping — previous agent failed")
         return state
 
-    print(f"\n[Delivery Agent] Reading facts for {entity}...")
-    facts = read_from_memory(entity)
-    print(f"[Delivery Agent] Found {len(facts)} facts")
-
-    if not facts:
-        state["status"] = "delivery_no_facts"
-        state["error"] = "No facts found to base recommendation on"
+    incident_id = state.get("incident_id")
+    if not incident_id:
+        print("[DELIVERY] No incident ID — skipping")
         return state
 
-    recommendation = generate_recommendation(entity, facts)
-    if not recommendation:
-        state["status"] = "delivery_generation_failed"
-        state["error"] = "Delivery Agent failed to generate recommendation"
-        return state
+    print(f"\n[DELIVERY] Generating recommendation for {incident_id}")
+    result = process_incident(incident_id)
 
-    print(f"[Delivery Agent] Recommendation: {json.dumps(recommendation, indent=2)}")
-
-    write_result = delivery_write(recommendation, source_file="delivery_agent_inference")
-    if not write_result:
-        state["status"] = "delivery_write_failed"
-        state["error"] = "Failed to write delivery recommendation to memory"
-        return state
-
-    state["delivery_fact"] = recommendation
-    state["status"] = "pipeline_complete"
-    print(f"[Delivery Agent] Written to memory: fact_id={write_result.get('fact_id')}")
+    if result["success"]:
+        state["recommendation"] = result["recommendation"]
+        state["status"] = "delivery_complete"
+    else:
+        state["status"] = "delivery_failed"
+        state["error"] = result.get("error", "Delivery failed")
     return state
 
 
-def build_graph():
+def coordinator_node(state: AgentState) -> AgentState:
+    print("\n[COORDINATOR] Checking for conflicts to resolve...")
+    result = process_flagged_conflicts()
+    state["conflicts_resolved"] = result.get("resolved", 0)
+    state["status"] = "coordinator_complete"
+    print(f"[COORDINATOR] Resolved {result['resolved']} conflicts")
+    return state
+
+
+def route_after_intake(state: AgentState) -> str:
+    if state["status"] in ["intake_failed", "billing_failed"]:
+        return "end"
+    if state.get("contradiction_detected"):
+        print("[ROUTER] Contradiction detected — routing to Coordinator")
+        return "coordinator"
+    return "delivery"
+
+
+def route_after_coordinator(state: AgentState) -> str:
+    return "delivery" if state.get("incident_id") else "end"
+
+
+def build_graph(agent_role: str = "intake"):
     graph = StateGraph(AgentState)
     graph.add_node("intake", intake_node)
+    graph.add_node("billing", billing_node)
     graph.add_node("delivery", delivery_node)
+    graph.add_node("coordinator", coordinator_node)
 
-    graph.set_entry_point("intake")
-    graph.add_edge("intake", "delivery")
+    entry_node = "billing" if agent_role == "billing" else "intake"
+    graph.set_entry_point(entry_node)
+
+    graph.add_conditional_edges(
+        entry_node, route_after_intake,
+        {"delivery": "delivery", "coordinator": "coordinator", "end": END}
+    )
     graph.add_edge("delivery", END)
+    graph.add_conditional_edges(
+        "coordinator", route_after_coordinator,
+        {"delivery": "delivery", "end": END}
+    )
 
     return graph.compile()
 
 
-if __name__ == "__main__":
-    graph = build_graph()
-
-    test_input = {
-        "input_text": "INC0000045 has priority 1-High according to the ticket system.",
-        "entity": None,
-        "intake_fact": None,
-        "delivery_fact": None,
-        "status": "pending",
-        "error": None
+def _base_state(text, source_file, agent_role):
+    return {
+        "input_text": text, "source_file": source_file, "agent_role": agent_role,
+        "extracted_fact": None, "incident_id": None, "memory_response": None,
+        "recommendation": None, "contradiction_detected": False,
+        "contradiction_details": None, "conflicts_resolved": 0,
+        "status": "pending", "error": None
     }
 
-    print("Running full Intake -> Delivery LangGraph pipeline")
+
+def run_intake(text: str, source_file: str = None) -> dict:
+    return build_graph("intake").invoke(_base_state(text, source_file, "intake"))
+
+
+def run_billing(text: str, source_file: str = "field_reports.csv") -> dict:
+    return build_graph("billing").invoke(_base_state(text, source_file, "billing"))
+
+
+if __name__ == "__main__":
+    print("Full Four-Agent Pipeline Test")
     print("=" * 60)
 
-    result = graph.invoke(test_input)
+    print("\n--- Test 1: Intake Agent ---")
+    r1 = run_intake("INC0000099 has priority 1-Critical due to full outage.", "ticket_intake.csv")
+    print(f"Status: {r1['status']}")
+    print(f"Recommendation: {r1.get('recommendation')}")
 
-    print("\n" + "=" * 60)
-    print(f"Final status: {result['status']}")
-    if result.get("error"):
-        print(f"Error: {result['error']}")
-    print(f"\nIntake fact: {json.dumps(result.get('intake_fact'), indent=2)}")
-    print(f"\nDelivery fact: {json.dumps(result.get('delivery_fact'), indent=2)}")
+    print("\n--- Test 2: Billing Agent (should conflict) ---")
+    r2 = run_billing("Old log shows INC0000099 priority as 3-Medium.", "field_reports.csv")
+    print(f"Status: {r2['status']}")
+    print(f"Contradiction detected: {r2.get('contradiction_detected', False)}")
+
+    print("\n--- Check conflicts at: http://10.125.5.158:8000/memory/conflicts ---")
