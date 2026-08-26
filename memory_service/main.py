@@ -24,7 +24,7 @@ from confidence_scorer import (
     compute_confidence,
     should_auto_resolve,
     update_agent_trust_after_resolution,
-    DEFAULT_AGENT_TRUST
+    DEFAULT_AGENT_TRUST_SCORE
 )
 
 Base.metadata.create_all(bind=engine)
@@ -62,8 +62,10 @@ def ensure_agent_exists(db: Session, agent_id: str):
     agent = db.query(Agent).filter(
         Agent.agent_id == agent_id
     ).first()
+
     if not agent:
-        initial_trust = DEFAULT_AGENT_TRUST.get(agent_id, 0.50)
+        initial_trust = 0.50
+
         db.add(Agent(
             agent_id=agent_id,
             trust_score=initial_trust,
@@ -77,7 +79,7 @@ def get_agent_trust(db: Session, agent_id: str) -> float:
     ).first()
     if agent:
         return agent.trust_score
-    return DEFAULT_AGENT_TRUST.get(agent_id, 0.50)
+    return DEFAULT_AGENT_TRUST_SCORE
 
 def check_and_handle_contradiction(
     db: Session,
@@ -389,12 +391,13 @@ def write_memory(
         # Recompute confidence with higher corroboration
         agent_trust = get_agent_trust(db, existing_same_value.agent_id)
         new_conf = compute_confidence(
-            agent_id=existing_same_value.agent_id,
-            extraction_type=existing_same_value.extraction_type,
-            corroboration_count=corroboration_count,
-            timestamp=existing_same_value.timestamp,
-            db_trust_score=agent_trust
-        )
+        agent_id=existing_same_value.agent_id,
+        fact_type=existing_same_value.fact_type,  # ADD THIS
+        extraction_type=existing_same_value.extraction_type,
+        corroboration_count=corroboration_count,
+        timestamp=existing_same_value.timestamp,
+        db_trust_score=agent_trust
+)
         existing_same_value.confidence = new_conf
 
         db.add(AuditLog(
@@ -422,11 +425,12 @@ def write_memory(
         # Auto-compute from formula
         agent_trust = get_agent_trust(db, request.agent_id)
         computed_confidence = compute_confidence(
-            agent_id=request.agent_id,
-            extraction_type=request.extraction_type or "direct",
-            corroboration_count=corroboration_count,
-            db_trust_score=agent_trust
-        )
+    agent_id=request.agent_id,
+    fact_type=request.fact_type.lower().strip(),
+    extraction_type=request.extraction_type or "direct",
+    corroboration_count=corroboration_count,
+    db_trust_score=agent_trust
+)
 
     # ── Write fact to PostgreSQL ───────────────────────────────
     fact = Fact(
@@ -833,9 +837,10 @@ def check_action_gate(
     entity_hash = hash_value(request.entity)
 
     fact = db.query(Fact).filter(
-        Fact.entity_hash == entity_hash,
-        Fact.fact_type == request.fact_type.lower().strip()
-    ).order_by(Fact.timestamp.desc()).first()
+    Fact.entity_hash == entity_hash,
+    Fact.fact_type == request.fact_type.lower().strip(),
+    Fact.status.in_(["active", "contested"])
+).order_by(Fact.timestamp.desc()).first()
 
     if not fact:
         return {
