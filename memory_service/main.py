@@ -494,25 +494,28 @@ def write_memory(
     db.commit()
 
     return {
-        "fact_id": fact.fact_id,
-        "entity_hash": entity_hash,
-        "fact_type": fact.fact_type,
-        "value_hash": value_hash,
-        "agent_id": request.agent_id,
-        "confidence": computed_confidence,
-        "status": fact.status,
-        "corroboration": existing_same_value is not None,
-        "contradiction_detected": contradiction_result is not None,
-        "contradiction": contradiction_result,
-        "message": (
-            "Corroboration — confidence updated"
-            if existing_same_value
-            else "Contradiction detected and resolved"
-            if contradiction_result
-            else "Fact stored successfully"
-        )
-    }
-
+    "fact_id": fact.fact_id,
+    "entity_hash": entity_hash,
+    "fact_type": fact.fact_type,
+    "value_hash": value_hash,
+    "agent_id": request.agent_id,
+    "confidence": computed_confidence,
+    "status": fact.status,
+    "corroboration": existing_same_value is not None,
+    "contradiction_detected": contradiction_result is not None,
+    "contradiction": contradiction_result,
+    "message": (
+        "Corroboration — confidence updated"
+        if existing_same_value
+        else "Contradiction detected — flagged for human review"
+        if contradiction_result and
+           contradiction_result.get("resolution") == "contested"
+        else "Contradiction detected and auto-resolved"
+        if contradiction_result and
+           contradiction_result.get("resolution") == "auto_resolved"
+        else "Fact stored successfully"
+    )
+}
 
 @app.get("/memory/read")
 def read_memory(
