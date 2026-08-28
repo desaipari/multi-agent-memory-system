@@ -1,6 +1,6 @@
 import axios from "axios"
 
-const BASE_URL = "http://127.0.0.1:8001"
+const BASE_URL = "http://localhost:8000"
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -10,6 +10,28 @@ const api = axios.create({
 export const memoryApi = {
   getAllFacts: async () => {
     const response = await api.get("/memory/all")
+    return response.data
+  },
+
+  writeFact: async (
+    entity,
+    factType,
+    value,
+    agentId,
+    extractionType,
+    confidence,
+    sourceFile
+  ) => {
+    const response = await api.post("/memory/write", {
+      entity,
+      fact_type: factType,
+      value,
+      agent_id: agentId,
+      extraction_type: extractionType,
+      confidence,
+      source_file: sourceFile
+    })
+
     return response.data
   },
 
@@ -43,7 +65,7 @@ export const memoryApi = {
       conflict_id: conflictId,
       winning_fact_id: winningFactId,
       resolved_by: resolvedBy,
-      reason: reason
+      reason
     })
 
     return response.data
@@ -58,7 +80,7 @@ export const memoryApi = {
   ) => {
     const response = await api.post("/memory/check_action", {
       agent_id: agentId,
-      entity: entity,
+      entity,
       fact_type: factType,
       action_attempted: action,
       confidence_threshold: threshold || 0.60
