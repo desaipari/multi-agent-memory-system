@@ -871,3 +871,46 @@ td {
     flex-direction: column;
   }
 }
+
+/* System Health Page */
+.system-health-page {
+  padding: 0;
+}
+
+.system-health-page .panel-heading {
+  padding: 22px 24px;
+}
+
+.system-health-page .panel-heading h2 {
+  font-size: 24px;
+  margin-bottom: 6px;
+}
+
+.system-health-page .panel-heading p {
+  font-size: 15px;
+  margin: 0;
+}
+
+.system-health-page .health-list {
+  padding: 10px 24px 20px;
+}
+
+.system-health-page .health-list p {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 16px;
+  padding: 16px 0;
+  margin: 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.system-health-page .health-list p:last-child {
+  border-bottom: none;
+}
+
+.system-health-page .health-online,
+.system-health-page .health-pending {
+  font-size: 15px;
+  font-weight: 600;
+}
