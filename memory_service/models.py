@@ -15,25 +15,17 @@ class Fact(Base):
     agent_id = Column(String, nullable=False)
     confidence = Column(Float, default=0.5)
     timestamp = Column(DateTime, server_default=func.now())
-
-    # active, superseded, contested
     status = Column(String, default="active")
-
-    # direct, inferred
     extraction_type = Column(String, default="direct")
-
     source_file = Column(String, nullable=True)
-
-    # Week 3 additions
-    # tracks how many independent agents confirmed this fact
     corroboration_count = Column(Integer, default=1)
-
-    # if superseded, which fact replaced it
     superseded_by = Column(String, nullable=True)
-
-    # if contested, which conflict caused it
     conflict_id = Column(String, nullable=True)
 
+    # Week 4 addition — role-based access
+    # Comma-separated list of agent_ids that can read this fact
+    # "all" means any agent can read it
+    readable_by = Column(String, default="all")
 
 class Agent(Base):
     __tablename__ = "agents"

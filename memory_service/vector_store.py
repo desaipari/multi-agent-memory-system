@@ -5,19 +5,38 @@ from qdrant_client.models import (
 )
 from sentence_transformers import SentenceTransformer
 import uuid
+import os
+import numpy as np
 
-# Connect to locally running Qdrant
-client = QdrantClient(host="localhost", port=6333)
+QDRANT_HOST = os.getenv("QDRANT_HOST", "localhost")
+QDRANT_PORT = int(os.getenv("QDRANT_PORT", "6333"))
 
-# Load sentence transformer model
-# all-MiniLM-L6-v2 is small, fast, and works well for 
-# short factual sentences like IT incident facts
-print("Loading sentence transformer model...")
-encoder = SentenceTransformer("all-MiniLM-L6-v2")
-print("Model loaded.")
+client = QdrantClient(host=QDRANT_HOST, port=QDRANT_PORT)
 
 COLLECTION_NAME = "incident_facts"
-VECTOR_SIZE = 384  # all-MiniLM-L6-v2 produces 384-dim vectors
+VECTOR_SIZE = 384
+
+# ── Model cache — load once, reuse forever ────────────────────
+# This is the critical fix. The model must be loaded once at
+# module import time and kept in memory. If it reloads per
+# request, each write takes 1-2 seconds just for model loading.
+_encoder = None
+
+def get_encoder() -> SentenceTransformer:
+    """
+    Returns the cached sentence transformer model.
+    Loads it once on first call, then returns the cached instance.
+    Thread-safe for read-only inference.
+    """
+    global _encoder
+    if _encoder is None:
+        print("Loading sentence transformer model (first time only)...")
+        _encoder = SentenceTransformer(
+            "all-MiniLM-L6-v2",
+            device="cpu"  # explicit CPU, avoids CUDA detection overhead
+        )
+        print("Model loaded and cached.")
+    return _encoder
 
 def ensure_collection_exists():
     """
@@ -38,16 +57,9 @@ def ensure_collection_exists():
         print(f"Qdrant collection already exists: {COLLECTION_NAME}")
 
 def embed_fact(fact_type: str, value: str) -> list:
-    """
-    Convert a fact into a vector embedding.
-    We embed the combination of fact_type and value
-    so similar facts (same type, similar values) end up close together.
-    
-    Example: "priority 2-High" and "priority High" will be close
-    Example: "priority 2-High" and "state Resolved" will be far apart
-    """
+    """Convert a fact into a vector embedding."""
     text = f"{fact_type} {value}"
-    embedding = encoder.encode(text)
+    embedding = get_encoder().encode(text, show_progress_bar=False)
     return embedding.tolist()
 
 def store_embedding(

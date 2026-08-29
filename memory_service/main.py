@@ -9,7 +9,8 @@ from pydantic import BaseModel
 from typing import Optional
 import hashlib
 from datetime import datetime, timezone
-
+from access_control import get_default_access, filter_facts_for_agent
+from contextlib import asynccontextmanager
 from database import engine, get_db, Base
 from models import (
     Fact, Agent, Conflict, AuditLog,
@@ -28,12 +29,24 @@ from confidence_scorer import (
 )
 
 Base.metadata.create_all(bind=engine)
-ensure_collection_exists()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("Starting up...")
+    ensure_collection_exists()
+    print("Warming up sentence transformer model...")
+    from vector_store import get_encoder
+    encoder = get_encoder()
+    encoder.encode("warmup test", show_progress_bar=False)
+    print("Ready to serve requests")
+    yield
 
 app = FastAPI(
     title="Multi-Agent Incident Memory Service",
-    version="3.0.0",
-    description="Week 3 — Confidence scoring, resolution, action gating"
+    version="4.0.0",
+    description="Week 4 — Performance optimized",
+    lifespan=lifespan
 )
 
 app.add_middleware(
@@ -433,6 +446,9 @@ def write_memory(
 )
 
     # ── Write fact to PostgreSQL ───────────────────────────────
+    # Add readable_by when creating the fact
+    # ── Write fact to PostgreSQL ───────────────────────────────
+    # Add readable_by when creating the fact
     fact = Fact(
         entity_hash=entity_hash,
         fact_type=request.fact_type.lower().strip(),
@@ -443,11 +459,12 @@ def write_memory(
         status="active",
         extraction_type=request.extraction_type or "direct",
         source_file=request.source_file,
-        corroboration_count=corroboration_count
+        corroboration_count=corroboration_count,
+        readable_by=get_default_access(
+            request.fact_type.lower().strip()
+        )
     )
     db.add(fact)
-    db.commit()
-    db.refresh(fact)
 
     # Update agent write count
     agent = db.query(Agent).filter(
@@ -521,15 +538,10 @@ def write_memory(
 def read_memory(
     entity: str,
     fact_type: Optional[str] = None,
-    agent_id: Optional[str] = None,
+    agent_id: Optional[str] = None,  # who is asking
     confidence_threshold: Optional[float] = None,
     db: Session = Depends(get_db)
 ):
-    """
-    Retrieve facts for an entity.
-    If confidence_threshold provided, blocks on low-confidence facts.
-    Returns blocked status if fact is contested.
-    """
     entity_hash = hash_value(entity)
 
     query = db.query(Fact).filter(
@@ -550,8 +562,13 @@ def read_memory(
             detail=f"No facts found for: {entity}"
         )
 
+    # Apply role-based access filter
+    if agent_id:
+        facts = filter_facts_for_agent(facts, agent_id)
+
     results = []
     blocked = []
+    access_denied = []
 
     for fact in facts:
         fact_data = {
@@ -565,24 +582,22 @@ def read_memory(
             "extraction_type": fact.extraction_type,
             "source_file": fact.source_file,
             "corroboration_count": fact.corroboration_count,
+            "readable_by": fact.readable_by,
             "timestamp": fact.timestamp.isoformat()
         }
 
-        # Check if action should be blocked
         if fact.status == "contested":
             blocked.append({
                 **fact_data,
-                "blocked_reason": "Fact is contested — conflict unresolved",
+                "blocked_reason": "Fact contested",
                 "action": "BLOCKED"
             })
-
-            # Log the block
             if agent_id:
                 db.add(ActionGateLog(
                     agent_id=agent_id,
                     entity=entity,
                     fact_type=fact.fact_type,
-                    blocked_reason="Fact is contested — conflict unresolved",
+                    blocked_reason="Fact is contested",
                     confidence_at_block=fact.confidence,
                     conflict_id=fact.conflict_id
                 ))
@@ -592,12 +607,11 @@ def read_memory(
             blocked.append({
                 **fact_data,
                 "blocked_reason": (
-                    f"Confidence {fact.confidence:.3f} below "
-                    f"threshold {confidence_threshold}"
+                    f"Confidence {fact.confidence:.3f} "
+                    f"below threshold {confidence_threshold}"
                 ),
                 "action": "BLOCKED"
             })
-
             if agent_id:
                 db.add(ActionGateLog(
                     agent_id=agent_id,
@@ -605,7 +619,7 @@ def read_memory(
                     fact_type=fact.fact_type,
                     blocked_reason=(
                         f"Confidence {fact.confidence:.3f} "
-                        f"below threshold {confidence_threshold}"
+                        f"below threshold"
                     ),
                     confidence_at_block=fact.confidence
                 ))
@@ -615,30 +629,43 @@ def read_memory(
 
     return {
         "entity": entity,
+        "requesting_agent": agent_id,
         "facts": results,
         "blocked": blocked,
         "has_blocked": len(blocked) > 0,
         "count": len(results)
     }
 
-
 @app.get("/memory/all")
 def get_all_facts(db: Session = Depends(get_db)):
-    """All facts for dashboard memory state table."""
+    """
+    All facts for dashboard memory state table.
+    Optimized: single query for facts, single query for hash map,
+    then join in Python instead of N+1 database round trips.
+    """
     facts = db.query(Fact).order_by(
         Fact.timestamp.desc()
     ).all()
 
+    if not facts:
+        return {"facts": [], "total": 0}
+
+    # Single query to get all hash mappings we need
+    # instead of one query per fact
+    entity_hashes = list(set(f.entity_hash for f in facts))
+    hash_mappings = {
+        hm.hash_value: hm.original_value
+        for hm in db.query(HashMap).filter(
+            HashMap.hash_value.in_(entity_hashes)
+        ).all()
+    }
+
     results = []
     for fact in facts:
-        entity_map = db.query(HashMap).filter(
-            HashMap.hash_value == fact.entity_hash
-        ).first()
-        entity_readable = (
-            entity_map.original_value if entity_map
-            else fact.entity_hash[:16]
+        entity_readable = hash_mappings.get(
+            fact.entity_hash,
+            fact.entity_hash[:16]
         )
-
         results.append({
             "fact_id": fact.fact_id,
             "entity": entity_readable,
@@ -658,36 +685,58 @@ def get_all_facts(db: Session = Depends(get_db)):
 
     return {"facts": results, "total": len(results)}
 
-
 @app.get("/memory/conflicts")
 def get_conflicts(db: Session = Depends(get_db)):
-    """All conflicts for dashboard conflict log panel."""
+    """
+    All conflicts for dashboard.
+    Optimized: batch load all related facts and hash mappings.
+    """
     conflicts = db.query(Conflict).order_by(
         Conflict.timestamp.desc()
     ).all()
 
+    if not conflicts:
+        return {"conflicts": [], "total": 0}
+
+    # Batch load all facts referenced by conflicts
+    all_fact_ids = []
+    for c in conflicts:
+        if c.fact_id_a:
+            all_fact_ids.append(c.fact_id_a)
+        if c.fact_id_b:
+            all_fact_ids.append(c.fact_id_b)
+
+    facts_by_id = {
+        f.fact_id: f
+        for f in db.query(Fact).filter(
+            Fact.fact_id.in_(list(set(all_fact_ids)))
+        ).all()
+    }
+
+    # Batch load all hash mappings
+    entity_hashes = list(set(c.entity_hash for c in conflicts))
+    hash_mappings = {
+        hm.hash_value: hm.original_value
+        for hm in db.query(HashMap).filter(
+            HashMap.hash_value.in_(entity_hashes)
+        ).all()
+    }
+
     results = []
     for conflict in conflicts:
-        fact_a = db.query(Fact).filter(
-            Fact.fact_id == conflict.fact_id_a
-        ).first()
-        fact_b = db.query(Fact).filter(
-            Fact.fact_id == conflict.fact_id_b
-        ).first()
-
-        entity_map = db.query(HashMap).filter(
-            HashMap.hash_value == conflict.entity_hash
-        ).first()
-        entity_readable = (
-            entity_map.original_value if entity_map
-            else conflict.entity_hash[:16]
+        fact_a = facts_by_id.get(conflict.fact_id_a)
+        fact_b = facts_by_id.get(conflict.fact_id_b)
+        entity_readable = hash_mappings.get(
+            conflict.entity_hash,
+            conflict.entity_hash[:16]
         )
 
         conf_a = fact_a.confidence if fact_a else None
         conf_b = fact_b.confidence if fact_b else None
         gap = (
             round(abs(conf_a - conf_b), 4)
-            if conf_a and conf_b else None
+            if conf_a is not None and conf_b is not None
+            else None
         )
 
         results.append({
@@ -703,7 +752,6 @@ def get_conflicts(db: Session = Depends(get_db)):
                 conflict.resolved_at.isoformat()
                 if conflict.resolved_at else None
             ),
-            # ── Values and agents ──────────────────────────────
             "value_a": fact_a.raw_value if fact_a else None,
             "agent_a": fact_a.agent_id if fact_a else None,
             "confidence_a": conf_a,
@@ -713,9 +761,6 @@ def get_conflicts(db: Session = Depends(get_db)):
             "confidence_b": conf_b,
             "status_b": fact_b.status if fact_b else None,
             "confidence_gap": gap,
-            # ── ADDED: actual fact IDs for resolution ──────────
-            # Person B's coordinator_agent.py needs these to call
-            # /memory/resolve with a real winning_fact_id
             "fact_id_a": conflict.fact_id_a,
             "fact_id_b": conflict.fact_id_b,
         })
@@ -935,15 +980,52 @@ def get_agents(db: Session = Depends(get_db)):
 def get_audit_log(
     entity: Optional[str] = None,
     agent_id: Optional[str] = None,
-    limit: int = 50,
+    event_type: Optional[str] = None,
+    limit: int = 100,
     db: Session = Depends(get_db)
 ):
-    """Full audit trail for dashboard audit panel."""
+    """
+    Full audit trail with optional filters.
+    
+    event_type options:
+      write, corroboration, conflict_detected,
+      auto_resolved, human_resolved, action_blocked
+    
+    Examples:
+      GET /memory/audit
+      GET /memory/audit?agent_id=billing_agent
+      GET /memory/audit?event_type=conflict_detected
+      GET /memory/audit?agent_id=intake_agent&limit=20
+    """
     query = db.query(AuditLog).order_by(
         AuditLog.timestamp.desc()
     )
+
     if agent_id:
         query = query.filter(AuditLog.agent_id == agent_id)
+
+    if event_type:
+        query = query.filter(AuditLog.event_type == event_type)
+
+    # Entity filter requires joining through facts
+    # since audit log stores fact_id not entity directly
+    if entity:
+        entity_hash = hash_value(entity)
+        # Get all fact_ids for this entity
+        fact_ids = [
+            f.fact_id for f in db.query(Fact).filter(
+                Fact.entity_hash == entity_hash
+            ).all()
+        ]
+        if fact_ids:
+            query = query.filter(
+                AuditLog.fact_id.in_(fact_ids)
+            )
+        else:
+            return {"logs": [], "total": 0, "filters": {
+                "entity": entity, "agent_id": agent_id,
+                "event_type": event_type
+            }}
 
     logs = query.limit(limit).all()
 
@@ -958,9 +1040,14 @@ def get_audit_log(
                 "timestamp": log.timestamp.isoformat()
             }
             for log in logs
-        ]
+        ],
+        "total": len(logs),
+        "filters": {
+            "entity": entity,
+            "agent_id": agent_id,
+            "event_type": event_type
+        }
     }
-
 
 @app.get("/memory/action_gate_log")
 def get_action_gate_log(db: Session = Depends(get_db)):
