@@ -8,6 +8,8 @@ from datetime import datetime
 
 from database import engine, get_db, Base
 from models import Fact, Agent, AuditLog, HashMap
+from routes.chat import router as chat_router
+app.include_router(chat_router)
 
 # Create all tables on startup
 Base.metadata.create_all(bind=engine)

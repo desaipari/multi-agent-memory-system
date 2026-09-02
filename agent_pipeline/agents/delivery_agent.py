@@ -129,6 +129,31 @@ def write_to_memory(fact: dict, agent_id: str = "delivery_agent", source_file: s
         print(f"Failed to write to memory service: {e}")
         return None
 
+def check_for_recent_updates(incident_id: str) -> list:
+    """
+    Check if any facts for this incident were recently
+    resolved or updated before proceeding with an action.
+    """
+    import requests
+    try:
+        r = requests.get(
+            f"{MEMORY_SERVICE_URL}/memory/resolution_feed",
+            params={"since_seconds": 300},
+            timeout=5
+        )
+        data = r.json()
+        relevant = [
+            res for res in data.get("recent_resolutions", [])
+            if res["entity"] == incident_id
+        ]
+        if relevant:
+            print(f"[DELIVERY] Recent updates found for {incident_id}:")
+            for res in relevant:
+                print(f"  {res['fact_type']} resolved to: {res['current_value']}")
+        return relevant
+    except Exception:
+        return []
+
 def process_incident(entity: str) -> dict:
     """
     Full Delivery Agent pipeline: read facts, generate recommendation, write it back.
@@ -137,6 +162,7 @@ def process_incident(entity: str) -> dict:
     facts = read_from_memory(entity)
     if not facts:
         return {"success": False, "error": f"No facts found for {entity}"}
+    check_for_recent_updates(entity)
 
     recommendation = generate_recommendation(entity, facts)
     if not recommendation:
