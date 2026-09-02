@@ -6,7 +6,7 @@ Every agent imports from here instead of writing its own requests.post/get calls
 import os
 import requests
 
-MEMORY_SERVICE_URL = os.getenv("MEMORY_SERVICE_URL", "http://10.125.7.33:8000")
+MEMORY_SERVICE_URL = os.getenv("MEMORY_SERVICE_URL", "http://127.0.0.1:8000")
 
 
 def write_memory(entity, fact_type, value, agent_id, extraction_type="direct",
