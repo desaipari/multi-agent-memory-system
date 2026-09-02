@@ -1072,6 +1072,50 @@ def get_action_gate_log(db: Session = Depends(get_db)):
         ]
     }
 
+@app.get("/memory/resolution_feed")
+def get_resolution_feed(
+    since_seconds: int = 300,
+    db: Session = Depends(get_db)
+):
+    """
+    Returns all resolutions in the last N seconds.
+    Agents can poll this before acting to check if any
+    facts they plan to use were recently updated.
+    """
+    from datetime import timedelta
+    cutoff = datetime.now(timezone.utc) - timedelta(
+        seconds=since_seconds
+    )
+
+    recent_resolutions = db.query(Conflict).filter(
+        Conflict.status.in_(["auto_resolved", "human_resolved"]),
+        Conflict.resolved_at >= cutoff
+    ).all()
+
+    results = []
+    for c in recent_resolutions:
+        winner = db.query(Fact).filter(
+            Fact.fact_id == c.resolved_winner
+        ).first()
+        entity_map = db.query(HashMap).filter(
+            HashMap.hash_value == c.entity_hash
+        ).first()
+
+        results.append({
+            "conflict_id": c.conflict_id,
+            "entity": entity_map.original_value if entity_map else c.entity_hash[:16],
+            "fact_type": c.fact_type,
+            "resolved_winner": c.resolved_winner,
+            "current_value": winner.raw_value if winner else None,
+            "resolution_type": c.resolution_type,
+            "resolved_at": c.resolved_at.isoformat() if c.resolved_at else None
+        })
+
+    return {
+        "recent_resolutions": results,
+        "count": len(results),
+        "since_seconds": since_seconds
+    }
 
 @app.delete("/memory/reset")
 def reset_memory(db: Session = Depends(get_db)):
