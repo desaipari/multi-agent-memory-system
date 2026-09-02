@@ -12,9 +12,6 @@ confidence = (0.35 × source_reliability_for_fact_type)
            + (0.15 × extraction_directness)
            - (0.20 × time_decay_penalty)
 
-The key change from Week 2: source_reliability is now a
-2D lookup (agent_id × fact_type) rather than a 1D lookup
-(agent_id only).
 """
 
 from datetime import datetime, timezone
@@ -27,86 +24,6 @@ W_TIME_DECAY         = 0.20
 
 # ── Auto-resolution threshold ─────────────────────────────────
 AUTO_RESOLVE_THRESHOLD = 0.30
-
-# ── Dynamic agent trust matrix ────────────────────────────────
-# Rows: agent_id
-# Cols: fact_type
-# Values: trust score 0.0 to 1.0
-#
-# Justification per agent per fact type:
-#
-# intake_agent reads from primary ticket system (ServiceNow ticket)
-#   priority    → 0.90  ticket system is the official source of priority
-#   state       → 0.85  initial state is directly recorded at ticket open
-#   assignment  → 0.80  initial assignment is recorded at ticket open
-#   category    → 0.70  often misclassified at intake, corrected later
-#   urgency     → 0.65  subjective at intake, may change after triage
-#   impact      → 0.70  self-reported at intake, often inaccurate
-#   opened_date → 0.95  timestamp is objective and exact
-#   resolved_by → 0.50  intake agent does not know who will resolve it
-#
-# delivery_agent reads from monitoring logs (live system telemetry)
-#   state       → 0.88  monitoring systems track live operational state
-#   urgency     → 0.82  monitoring knows actual system impact in real time
-#   priority    → 0.72  monitoring-derived priority is reasonable estimate
-#   impact      → 0.80  monitoring can measure actual system impact
-#   assignment  → 0.58  monitoring logs rarely track team assignments
-#   category    → 0.65  monitoring knows symptoms but not root cause well
-#   opened_date → 0.60  monitoring timestamp may differ from ticket open
-#   resolved_by → 0.55  monitoring may not capture resolver identity
-#
-# billing_agent reads from field reports (transferred/older records)
-#   resolved_by → 0.88  field agents know exactly who resolved it
-#   state       → 0.80  field agent sees actual current physical state
-#   assignment  → 0.52  field report may have stale team assignment
-#   priority    → 0.38  field reports often reflect old priority levels
-#   category    → 0.62  field agent knows root cause from direct inspection
-#   urgency     → 0.45  field report urgency often stale
-#   impact      → 0.55  field report impact may be historical
-#   opened_date → 0.40  transferred records often have wrong timestamps
-#
-# coordinator_agent acts on human judgment or orchestration logic
-#   all types   → 0.82  human-directed, generally trustworthy but not
-#                        authoritative on any specific domain
-
-# ── Skill-Conditional Agent Trust Matrix ──────────────────────
-#
-# Theoretical basis:
-# Conditional trust R(i|k) — trust in agent i for fact type k —
-# rather than a single global score per agent.
-# Source: "When Should Agent Trust Be Conditional?"
-# arXiv:2606.14200 (June 2026)
-#
-# Dynamic trust updating after conflict resolution:
-# Source: "DynaTrust: Dynamic Trust Graphs for Multi-Agent Systems"
-# arXiv:2603.15661 (March 2026)
-#
-# Domain-grounded weight values:
-# Derived from ITSM (IT Service Management) source-of-record
-# principles under the ITIL framework, which defines which
-# system is authoritative for each incident fact type:
-#
-# Intake Agent reads from the primary ticket system (ServiceNow).
-# In ITSM practice, the ticket system is the system of record for
-# priority, assignment, and initial categorization. It has high
-# authority for administrative facts set at ticket creation but
-# low authority for resolution details it cannot know at intake.
-#
-# Delivery Agent reads from monitoring logs (live telemetry).
-# Monitoring systems are purpose-built for tracking operational
-# state and urgency. They have high authority for live system
-# facts but low authority for administrative assignments.
-#
-# Billing/Ops Agent reads from field reports and transferred
-# records. Field agents have direct knowledge of resolution
-# outcomes but read from potentially stale transferred records
-# for administrative facts like priority.
-#
-# Initial weight values are set by domain authority per ITIL.
-# These weights evolve dynamically after each conflict resolution
-# following DynaTrust's continuous trust update principle.
-
-
 
 # Source-conditional agent trust matrix
 # Principle: skill-conditional trust R(agent|fact_type)
