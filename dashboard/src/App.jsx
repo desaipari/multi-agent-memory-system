@@ -8,6 +8,9 @@ import ActionGateLog from "./components/ActionGateLog"
 import AuditLog from "./components/AuditLog"
 import SystemHealth from "./components/SystemHealth"
 
+import InputPanel from "./components/InputPanel"
+import ConfidenceTimeline from "./components/ConfidenceTimeline"
+
 const fallbackFacts = [
   {
     id: 1,
@@ -516,6 +519,10 @@ function App() {
 
           {activeView === "health" && (
             <SystemHealth />
+          )}
+
+          {activeView === "overview" && (
+            <ConfidenceTimeline refreshTrigger={refreshTrigger} />
           )}
 
           {(activeView === "overview" ||
@@ -1181,121 +1188,8 @@ function App() {
               </button>
 
             </div>
+            <InputPanel onInputSent={refreshAll} />
 
-            <label>
-              Processing agent
-
-              <select>
-                <option>
-                  Intake Agent
-                </option>
-
-                <option>
-                  Delivery Agent
-                </option>
-
-                <option>
-                  Billing/Ops Agent
-                </option>
-
-                <option>
-                  Coordinator Agent
-                </option>
-              </select>
-
-            </label>
-
-            <label>
-              Source
-
-              <select>
-                <option>
-                  manual_input
-                </option>
-
-                <option>
-                  ticket_intake.csv
-                </option>
-
-                <option>
-                  monitoring_logs.csv
-                </option>
-
-                <option>
-                  field_reports.csv
-                </option>
-              </select>
-
-            </label>
-
-            <label>
-              Incident update
-
-              <textarea
-                value={message}
-                onChange={(event) =>
-                  setMessage(
-                    event.target.value
-                  )
-                }
-                placeholder="Example: INC0000001 has priority 2-High"
-                rows="5"
-              />
-
-            </label>
-
-            <label className="upload-area">
-
-              <span>
-                Upload CSV file
-              </span>
-
-              <input
-                type="file"
-                accept=".csv"
-              />
-
-            </label>
-
-            <button
-              className="send-button"
-              onClick={sendMessage}
-            >
-              Send Input
-            </button>
-
-            <div className="input-history">
-
-              <h3>
-                Input History
-              </h3>
-
-              {history.length === 0 ? (
-                <p className="empty-history">
-                  No input sent yet.
-                </p>
-              ) : (
-                history.map(
-                  (item) => (
-                    <div
-                      className="history-message"
-                      key={
-                        item.id
-                      }
-                    >
-                      <small>
-                        Manual input
-                      </small>
-
-                      <p>
-                        {item.text}
-                      </p>
-                    </div>
-                  )
-                )
-              )}
-
-            </div>
 
           </aside>
 
