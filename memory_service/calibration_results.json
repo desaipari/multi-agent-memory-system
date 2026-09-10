@@ -1,0 +1,63 @@
+{
+  "ablation_results": [
+    {
+      "config": "uniform",
+      "precision": 0.8889,
+      "recall": 1.0,
+      "accuracy": 0.9091,
+      "f1": 0.9412,
+      "resolution_accuracy": 0.5714,
+      "correct_res": 12,
+      "total_res": 21,
+      "tp": 24,
+      "fp": 3,
+      "fn": 0,
+      "tn": 6
+    },
+    {
+      "config": "global_rank",
+      "precision": 0.8889,
+      "recall": 1.0,
+      "accuracy": 0.9091,
+      "f1": 0.9412,
+      "resolution_accuracy": 0.4286,
+      "correct_res": 9,
+      "total_res": 21,
+      "tp": 24,
+      "fp": 3,
+      "fn": 0,
+      "tn": 6
+    },
+    {
+      "config": "itsm_domain",
+      "precision": 0.8889,
+      "recall": 1.0,
+      "accuracy": 0.9091,
+      "f1": 0.9412,
+      "resolution_accuracy": 0.5714,
+      "correct_res": 12,
+      "total_res": 21,
+      "tp": 24,
+      "fp": 3,
+      "fn": 0,
+      "tn": 6
+    },
+    {
+      "config": "itsm_domain_conservative",
+      "precision": 0.8889,
+      "recall": 1.0,
+      "accuracy": 0.9091,
+      "f1": 0.9412,
+      "resolution_accuracy": 0.619,
+      "correct_res": 13,
+      "total_res": 21,
+      "tp": 24,
+      "fp": 3,
+      "fn": 0,
+      "tn": 6
+    }
+  ],
+  "selected_config": "itsm_domain_conservative",
+  "selection_criterion": "highest F1, then resolution_accuracy",
+  "dataset_size": 33
+}
