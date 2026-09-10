@@ -17,7 +17,8 @@
           "source_dataset": "incident_event_log.csv",
           "turn": 1,
           "agent": "intake_agent",
-          "confidence": 0.82
+          "confidence": 0.82,
+          "extraction_type": "direct"
         },
         {
           "entity": "INC0025734",
@@ -28,7 +29,8 @@
           "source_dataset": "incident_event_log.csv",
           "turn": 2,
           "agent": "delivery_agent",
-          "confidence": 0.91
+          "confidence": 0.91,
+          "extraction_type": "direct"
         }
       ],
       "ground_truth": {
@@ -50,7 +52,8 @@
           "source_dataset": "incident_event_log.csv",
           "turn": 1,
           "agent": "intake_agent",
-          "confidence": 0.84
+          "confidence": 0.84,
+          "extraction_type": "direct"
         },
         {
           "entity": "INC0005927",
@@ -61,7 +64,8 @@
           "source_dataset": "incident_event_log.csv",
           "turn": 2,
           "agent": "delivery_agent",
-          "confidence": 0.9
+          "confidence": 0.9,
+          "extraction_type": "direct"
         }
       ],
       "ground_truth": {
@@ -83,7 +87,8 @@
           "source_dataset": "incident_event_log.csv",
           "turn": 1,
           "agent": "intake_agent",
-          "confidence": 0.86
+          "confidence": 0.86,
+          "extraction_type": "direct"
         },
         {
           "entity": "INC0019396",
@@ -94,7 +99,8 @@
           "source_dataset": "incident_event_log.csv",
           "turn": 2,
           "agent": "coordinator_agent",
-          "confidence": 0.89
+          "confidence": 0.89,
+          "extraction_type": "direct"
         }
       ],
       "ground_truth": {
