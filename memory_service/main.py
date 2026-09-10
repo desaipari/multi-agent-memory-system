@@ -27,7 +27,6 @@ from confidence_scorer import (
     update_agent_trust_after_resolution,
     DEFAULT_AGENT_TRUST_SCORE
 )
-from routes.chat import router as chat_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -56,7 +55,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.include_router(chat_router)  
+
 # ── Helper Functions ───────────────────────────────────────────
 
 def hash_value(text: str) -> str:

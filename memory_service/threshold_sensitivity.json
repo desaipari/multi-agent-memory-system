@@ -1,0 +1,101 @@
+[
+  {
+    "threshold": 0.03,
+    "auto_count": 22,
+    "contested_count": 2,
+    "auto_resolve_pct": 0.9167,
+    "contested_pct": 0.0833,
+    "resolution_accuracy": 0.5455,
+    "correct_auto": 12
+  },
+  {
+    "threshold": 0.05,
+    "auto_count": 22,
+    "contested_count": 2,
+    "auto_resolve_pct": 0.9167,
+    "contested_pct": 0.0833,
+    "resolution_accuracy": 0.5455,
+    "correct_auto": 12
+  },
+  {
+    "threshold": 0.07,
+    "auto_count": 22,
+    "contested_count": 2,
+    "auto_resolve_pct": 0.9167,
+    "contested_pct": 0.0833,
+    "resolution_accuracy": 0.5455,
+    "correct_auto": 12
+  },
+  {
+    "threshold": 0.09,
+    "auto_count": 16,
+    "contested_count": 8,
+    "auto_resolve_pct": 0.6667,
+    "contested_pct": 0.3333,
+    "resolution_accuracy": 0.6875,
+    "correct_auto": 11
+  },
+  {
+    "threshold": 0.1,
+    "auto_count": 15,
+    "contested_count": 9,
+    "auto_resolve_pct": 0.625,
+    "contested_pct": 0.375,
+    "resolution_accuracy": 0.7333,
+    "correct_auto": 11
+  },
+  {
+    "threshold": 0.11,
+    "auto_count": 13,
+    "contested_count": 11,
+    "auto_resolve_pct": 0.5417,
+    "contested_pct": 0.4583,
+    "resolution_accuracy": 0.7692,
+    "correct_auto": 10
+  },
+  {
+    "threshold": 0.13,
+    "auto_count": 12,
+    "contested_count": 12,
+    "auto_resolve_pct": 0.5,
+    "contested_pct": 0.5,
+    "resolution_accuracy": 0.75,
+    "correct_auto": 9
+  },
+  {
+    "threshold": 0.15,
+    "auto_count": 11,
+    "contested_count": 13,
+    "auto_resolve_pct": 0.4583,
+    "contested_pct": 0.5417,
+    "resolution_accuracy": 0.8182,
+    "correct_auto": 9
+  },
+  {
+    "threshold": 0.17,
+    "auto_count": 10,
+    "contested_count": 14,
+    "auto_resolve_pct": 0.4167,
+    "contested_pct": 0.5833,
+    "resolution_accuracy": 0.8,
+    "correct_auto": 8
+  },
+  {
+    "threshold": 0.19,
+    "auto_count": 10,
+    "contested_count": 14,
+    "auto_resolve_pct": 0.4167,
+    "contested_pct": 0.5833,
+    "resolution_accuracy": 0.8,
+    "correct_auto": 8
+  },
+  {
+    "threshold": 0.2,
+    "auto_count": 9,
+    "contested_count": 15,
+    "auto_resolve_pct": 0.375,
+    "contested_pct": 0.625,
+    "resolution_accuracy": 0.8889,
+    "correct_auto": 8
+  }
+]

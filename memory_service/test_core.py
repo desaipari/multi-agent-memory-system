@@ -136,11 +136,11 @@ class TestComputeConfidence:
             fact_type="priority",
             extraction_type="direct",
             corroboration_count=1
-    )
-    # Score of 0.499 is correct for single-source direct statement
-    # Threshold adjusted to match actual formula output
-        assert score >= 0.45, \
-        "Intake direct priority should have reasonable confidence"
+        )
+    # New formula (0.50 domain weight):
+    # 0.50×0.88 + 0.20×0.20 + 0.15×0.90 - 0.15×0.02 = 0.612
+        assert score >= 0.55, \
+            f"Intake direct priority should be >= 0.55, got {score}"
 
     def test_billing_inferred_priority_low_confidence(self):
         score = compute_confidence(
@@ -223,26 +223,31 @@ class TestAutoResolve:
         )
         assert result is True
 
+    def test_intake_direct_priority_high_confidence(self):
+        score = compute_confidence(
+            agent_id="intake_agent",
+            fact_type="priority",
+            extraction_type="direct",
+            corroboration_count=1
+        )
+    # New formula (0.50 domain weight):
+    # 0.50×0.88 + 0.20×0.20 + 0.15×0.90 - 0.15×0.02 = 0.612
+        assert score >= 0.55, \
+            f"Intake direct priority should be >= 0.55, got {score}"
+
     def test_intake_priority_vs_billing_auto_resolves(self):
         intake_conf = compute_confidence(
             "intake_agent", "priority", "direct", 1
-    )
+        )
         billing_conf = compute_confidence(
             "billing_agent", "priority", "inferred", 1
-    )
+        )
         gap = abs(intake_conf - billing_conf)
-        print(f"\n  intake priority: {intake_conf:.4f}")
-        print(f"  billing priority: {billing_conf:.4f}")
-        print(f"  gap: {gap:.4f}")
-        print(f"  threshold: {AUTO_RESOLVE_THRESHOLD}")
-    # Gap of 0.2425 is below the 0.30 auto-resolve threshold
-    # This means intake vs billing priority goes to CONTESTED state
-    # which is correct behavior — human review for close scores
-        assert gap >= 0.20, \
-            (f"Gap {gap:.4f} too small — weights need adjustment")
-        print(f"  Note: gap {gap:.4f} below AUTO_RESOLVE threshold 0.30")
-        print(f"  This conflict goes to CONTESTED — human review required")
-        print(f"  To auto-resolve, add corroboration to intake fact first")
+    # New formula gives gap ~0.317 which exceeds threshold 0.25
+        assert gap >= 0.25, \
+            f"Gap {gap:.4f} should exceed AUTO_RESOLVE_THRESHOLD 0.25"
+        assert should_auto_resolve(intake_conf, billing_conf), \
+            "intake direct priority vs billing inferred should auto-resolve"
 
 
 if __name__ == "__main__":
