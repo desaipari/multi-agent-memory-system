@@ -1,0 +1,91 @@
+{
+  "category": "I",
+  "category_name": "No Contradiction — Corroboration Scenarios",
+  "description": "Multiple agents agree on the same fact. System should NOT detect contradiction. Tests precision.",
+  "scenarios": [
+    {
+      "scenario_id": "I_001",
+      "fact_type": "priority",
+      "turns": [
+        {
+          "entity": "INC0077001",
+          "fact_type": "priority",
+          "value": "2 - High",
+          "agent": "intake_agent",
+          "extraction_type": "direct",
+          "source_dataset": "ticket_intake.csv"
+        },
+        {
+          "entity": "INC0077001",
+          "fact_type": "priority",
+          "value": "2 - High",
+          "agent": "delivery_agent",
+          "extraction_type": "direct",
+          "source_dataset": "monitoring_logs.csv"
+        }
+      ],
+      "ground_truth": {
+        "contradiction_expected": false,
+        "correct_resolution": "",
+        "resolution_type": "corroboration",
+        "reason": "Both agents agree. Confidence increases. No conflict."
+      }
+    },
+    {
+      "scenario_id": "I_002",
+      "fact_type": "state",
+      "turns": [
+        {
+          "entity": "INC0077002",
+          "fact_type": "state",
+          "value": "Resolved",
+          "agent": "billing_agent",
+          "extraction_type": "direct",
+          "source_dataset": "field_reports.csv"
+        },
+        {
+          "entity": "INC0077002",
+          "fact_type": "state",
+          "value": "Resolved",
+          "agent": "intake_agent",
+          "extraction_type": "direct",
+          "source_dataset": "ticket_intake.csv"
+        }
+      ],
+      "ground_truth": {
+        "contradiction_expected": false,
+        "correct_resolution": "",
+        "resolution_type": "corroboration",
+        "reason": "Agreement on Resolved. No conflict detected."
+      }
+    },
+    {
+      "scenario_id": "I_003",
+      "fact_type": "assignment_group",
+      "turns": [
+        {
+          "entity": "INC0077003",
+          "fact_type": "assignment_group",
+          "value": "Network Team",
+          "agent": "intake_agent",
+          "extraction_type": "direct",
+          "source_dataset": "ticket_intake.csv"
+        },
+        {
+          "entity": "INC0077003",
+          "fact_type": "assignment_group",
+          "value": "Network Team",
+          "agent": "delivery_agent",
+          "extraction_type": "direct",
+          "source_dataset": "monitoring_logs.csv"
+        }
+      ],
+      "ground_truth": {
+        "contradiction_expected": false,
+        "correct_resolution": "",
+        "resolution_type": "corroboration",
+        "reason": "Both agents agree on assignment. Confidence increases."
+      }
+    }
+  ]
+}

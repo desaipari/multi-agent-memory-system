@@ -1,0 +1,181 @@
+{
+  "category": "G",
+  "category_name": "Intake vs Billing Agent — Clear Source Authority Difference",
+  "description": "Billing agent reads from old transferred records (inferred). Intake agent reads from current ticket system (direct). Large confidence gap expected due to source authority difference.",
+  "scenarios": [
+    {
+      "scenario_id": "G_001",
+      "fact_type": "priority",
+      "turns": [
+        {
+          "entity": "INC0099001",
+          "fact_type": "priority",
+          "value": "1 - Critical",
+          "agent": "intake_agent",
+          "extraction_type": "direct",
+          "source_dataset": "ticket_intake.csv"
+        },
+        {
+          "entity": "INC0099001",
+          "fact_type": "priority",
+          "value": "3 - Moderate",
+          "agent": "billing_agent",
+          "extraction_type": "inferred",
+          "source_dataset": "field_reports.csv"
+        }
+      ],
+      "ground_truth": {
+        "contradiction_expected": true,
+        "correct_resolution": "1 - Critical",
+        "resolution_type": "auto_resolve",
+        "winning_agent": "intake_agent",
+        "reason": "intake_agent reads from primary ticket system (direct). billing_agent reads from old transferred log (inferred). Large domain weight gap: intake priority=0.88 vs billing priority=0.38."
+      }
+    },
+    {
+      "scenario_id": "G_002",
+      "fact_type": "state",
+      "turns": [
+        {
+          "entity": "INC0099002",
+          "fact_type": "state",
+          "value": "Resolved",
+          "agent": "billing_agent",
+          "extraction_type": "direct",
+          "source_dataset": "field_reports.csv"
+        },
+        {
+          "entity": "INC0099002",
+          "fact_type": "state",
+          "value": "Reopened",
+          "agent": "intake_agent",
+          "extraction_type": "inferred",
+          "source_dataset": "ticket_intake.csv"
+        }
+      ],
+      "ground_truth": {
+        "contradiction_expected": true,
+        "correct_resolution": "Resolved",
+        "resolution_type": "auto_resolve",
+        "winning_agent": "billing_agent",
+        "reason": "For state/resolution facts, billing_agent has higher domain authority (0.80) than intake_agent (0.72). Field agent sees actual resolution status."
+      }
+    },
+    {
+      "scenario_id": "G_003",
+      "fact_type": "resolved_by",
+      "turns": [
+        {
+          "entity": "INC0099003",
+          "fact_type": "resolved_by",
+          "value": "Network Team Lead",
+          "agent": "billing_agent",
+          "extraction_type": "direct",
+          "source_dataset": "field_reports.csv"
+        },
+        {
+          "entity": "INC0099003",
+          "fact_type": "resolved_by",
+          "value": "Desktop Support",
+          "agent": "intake_agent",
+          "extraction_type": "direct",
+          "source_dataset": "ticket_intake.csv"
+        }
+      ],
+      "ground_truth": {
+        "contradiction_expected": true,
+        "correct_resolution": "Network Team Lead",
+        "resolution_type": "auto_resolve",
+        "winning_agent": "billing_agent",
+        "reason": "billing_agent has domain authority 0.90 for resolved_by (field agent knows who fixed it). intake_agent has 0.38 (cannot know at ticket creation)."
+      }
+    },
+    {
+      "scenario_id": "G_004",
+      "fact_type": "priority",
+      "turns": [
+        {
+          "entity": "INC0099004",
+          "fact_type": "priority",
+          "value": "2 - High",
+          "agent": "intake_agent",
+          "extraction_type": "direct",
+          "source_dataset": "ticket_intake.csv"
+        },
+        {
+          "entity": "INC0099004",
+          "fact_type": "priority",
+          "value": "4 - Low",
+          "agent": "billing_agent",
+          "extraction_type": "inferred",
+          "source_dataset": "field_reports.csv"
+        }
+      ],
+      "ground_truth": {
+        "contradiction_expected": true,
+        "correct_resolution": "2 - High",
+        "resolution_type": "auto_resolve",
+        "winning_agent": "intake_agent",
+        "reason": "intake direct priority (domain=0.88) vs billing inferred priority (domain=0.38). Maximum gap scenario."
+      }
+    },
+    {
+      "scenario_id": "G_005",
+      "fact_type": "urgency",
+      "turns": [
+        {
+          "entity": "INC0099005",
+          "fact_type": "urgency",
+          "value": "1 - High",
+          "agent": "delivery_agent",
+          "extraction_type": "direct",
+          "source_dataset": "monitoring_logs.csv"
+        },
+        {
+          "entity": "INC0099005",
+          "fact_type": "urgency",
+          "value": "3 - Low",
+          "agent": "billing_agent",
+          "extraction_type": "inferred",
+          "source_dataset": "field_reports.csv"
+        }
+      ],
+      "ground_truth": {
+        "contradiction_expected": true,
+        "correct_resolution": "1 - High",
+        "resolution_type": "auto_resolve",
+        "winning_agent": "delivery_agent",
+        "reason": "delivery_agent monitors real-time system impact (domain=0.84 for urgency). billing_agent reads stale urgency (domain=0.44)."
+      }
+    },
+    {
+      "scenario_id": "G_006",
+      "fact_type": "category",
+      "turns": [
+        {
+          "entity": "INC0099006",
+          "fact_type": "category",
+          "value": "Software",
+          "agent": "intake_agent",
+          "extraction_type": "direct",
+          "source_dataset": "ticket_intake.csv"
+        },
+        {
+          "entity": "INC0099006",
+          "fact_type": "category",
+          "value": "Hardware",
+          "agent": "billing_agent",
+          "extraction_type": "inferred",
+          "source_dataset": "field_reports.csv"
+        }
+      ],
+      "ground_truth": {
+        "contradiction_expected": true,
+        "correct_resolution": "Software",
+        "resolution_type": "auto_resolve",
+        "winning_agent": "intake_agent",
+        "reason": "intake direct category (domain=0.78) vs billing inferred category (domain=0.60). Intake reads from official ticket classification."
+      }
+    }
+  ]
+}

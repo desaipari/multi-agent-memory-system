@@ -1,0 +1,180 @@
+{
+  "category": "H",
+  "category_name": "Delivery vs Billing — Monitoring vs Field Report",
+  "scenarios": [
+    {
+      "scenario_id": "H_001",
+      "fact_type": "state",
+      "turns": [
+        {
+          "entity": "INC0088001",
+          "fact_type": "state",
+          "value": "In Progress",
+          "agent": "delivery_agent",
+          "extraction_type": "direct",
+          "source_dataset": "monitoring_logs.csv"
+        },
+        {
+          "entity": "INC0088001",
+          "fact_type": "state",
+          "value": "Resolved",
+          "agent": "billing_agent",
+          "extraction_type": "inferred",
+          "source_dataset": "field_reports.csv"
+        }
+      ],
+      "ground_truth": {
+        "contradiction_expected": true,
+        "correct_resolution": "In Progress",
+        "resolution_type": "auto_resolve",
+        "winning_agent": "delivery_agent",
+        "reason": "delivery direct state (domain=0.90) vs billing inferred state (domain=0.80). Live monitoring beats stale field report."
+      }
+    },
+    {
+      "scenario_id": "H_002",
+      "fact_type": "urgency",
+      "turns": [
+        {
+          "entity": "INC0088002",
+          "fact_type": "urgency",
+          "value": "2 - Medium",
+          "agent": "billing_agent",
+          "extraction_type": "inferred",
+          "source_dataset": "field_reports.csv"
+        },
+        {
+          "entity": "INC0088002",
+          "fact_type": "urgency",
+          "value": "1 - High",
+          "agent": "delivery_agent",
+          "extraction_type": "direct",
+          "source_dataset": "monitoring_logs.csv"
+        }
+      ],
+      "ground_truth": {
+        "contradiction_expected": true,
+        "correct_resolution": "1 - High",
+        "resolution_type": "auto_resolve",
+        "winning_agent": "delivery_agent",
+        "reason": "delivery direct urgency (domain=0.84) vs billing inferred urgency (domain=0.44)."
+      }
+    },
+    {
+      "scenario_id": "H_003",
+      "fact_type": "impact",
+      "turns": [
+        {
+          "entity": "INC0088003",
+          "fact_type": "impact",
+          "value": "3 - Low",
+          "agent": "billing_agent",
+          "extraction_type": "inferred",
+          "source_dataset": "field_reports.csv"
+        },
+        {
+          "entity": "INC0088003",
+          "fact_type": "impact",
+          "value": "1 - High",
+          "agent": "delivery_agent",
+          "extraction_type": "direct",
+          "source_dataset": "monitoring_logs.csv"
+        }
+      ],
+      "ground_truth": {
+        "contradiction_expected": true,
+        "correct_resolution": "1 - High",
+        "resolution_type": "auto_resolve",
+        "winning_agent": "delivery_agent",
+        "reason": "delivery direct impact (domain=0.80) vs billing inferred impact (domain=0.52)."
+      }
+    },
+    {
+      "scenario_id": "H_004",
+      "fact_type": "resolved_by",
+      "turns": [
+        {
+          "entity": "INC0088004",
+          "fact_type": "resolved_by",
+          "value": "Network Team",
+          "agent": "billing_agent",
+          "extraction_type": "direct",
+          "source_dataset": "field_reports.csv"
+        },
+        {
+          "entity": "INC0088004",
+          "fact_type": "resolved_by",
+          "value": "Desktop Support",
+          "agent": "delivery_agent",
+          "extraction_type": "inferred",
+          "source_dataset": "monitoring_logs.csv"
+        }
+      ],
+      "ground_truth": {
+        "contradiction_expected": true,
+        "correct_resolution": "Network Team",
+        "resolution_type": "auto_resolve",
+        "winning_agent": "billing_agent",
+        "reason": "billing direct resolved_by (domain=0.90) vs delivery inferred resolved_by (domain=0.52). Field agent knows who fixed it."
+      }
+    },
+    {
+      "scenario_id": "H_005",
+      "fact_type": "category",
+      "turns": [
+        {
+          "entity": "INC0088005",
+          "fact_type": "category",
+          "value": "Network",
+          "agent": "delivery_agent",
+          "extraction_type": "direct",
+          "source_dataset": "monitoring_logs.csv"
+        },
+        {
+          "entity": "INC0088005",
+          "fact_type": "category",
+          "value": "Software",
+          "agent": "billing_agent",
+          "extraction_type": "inferred",
+          "source_dataset": "field_reports.csv"
+        }
+      ],
+      "ground_truth": {
+        "contradiction_expected": true,
+        "correct_resolution": "Network",
+        "resolution_type": "auto_resolve",
+        "winning_agent": "delivery_agent",
+        "reason": "delivery direct category (domain=0.63) vs billing inferred category (domain=0.60). Small gap but delivery wins."
+      }
+    },
+    {
+      "scenario_id": "H_006",
+      "fact_type": "priority",
+      "turns": [
+        {
+          "entity": "INC0088006",
+          "fact_type": "priority",
+          "value": "1 - Critical",
+          "agent": "intake_agent",
+          "extraction_type": "direct",
+          "source_dataset": "ticket_intake.csv"
+        },
+        {
+          "entity": "INC0088006",
+          "fact_type": "priority",
+          "value": "2 - High",
+          "agent": "billing_agent",
+          "extraction_type": "inferred",
+          "source_dataset": "field_reports.csv"
+        }
+      ],
+      "ground_truth": {
+        "contradiction_expected": true,
+        "correct_resolution": "1 - Critical",
+        "resolution_type": "auto_resolve",
+        "winning_agent": "intake_agent",
+        "reason": "intake direct priority (domain=0.88) vs billing inferred priority (domain=0.38). Large gap: 0.242."
+      }
+    }
+  ]
+}
