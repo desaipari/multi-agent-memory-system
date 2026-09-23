@@ -1,0 +1,2848 @@
+{
+  "n_failure_records": 107,
+  "failure_type_counts": {
+    "incorrect_top_ranked_value": 107,
+    "incorrect_auto_resolution": 19
+  },
+  "failures": [
+    {
+      "scenario_id": "GEN_C_00003",
+      "incident_id": "INC0000057",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value",
+        "incorrect_auto_resolution"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.6956,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.2986,
+      "decision": "auto_resolved"
+    },
+    {
+      "scenario_id": "GEN_C_00009",
+      "incident_id": "INC0000065",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value",
+        "incorrect_auto_resolution"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Awaiting User Info",
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.681,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.284,
+      "decision": "auto_resolved"
+    },
+    {
+      "scenario_id": "GEN_C_00011",
+      "incident_id": "INC0000066",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.5613,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.1643,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00026",
+      "incident_id": "INC0000083",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value",
+        "incorrect_auto_resolution"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.6935,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.2965,
+      "decision": "auto_resolved"
+    },
+    {
+      "scenario_id": "GEN_C_00030",
+      "incident_id": "INC0000086",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value",
+        "incorrect_auto_resolution"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.6874,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.2904,
+      "decision": "auto_resolved"
+    },
+    {
+      "scenario_id": "GEN_C_00031",
+      "incident_id": "INC0000086",
+      "fact_type": "assignment_group",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Group 23",
+      "candidate_values": [
+        "Group 23",
+        "Group 70"
+      ],
+      "winner_value": "Group 70",
+      "winner_agent": "intake_agent",
+      "winner_confidence": 0.5499,
+      "runner_value": "Group 23",
+      "runner_agent": "delivery_agent",
+      "runner_confidence": 0.4816,
+      "confidence_gap": 0.0683,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00045",
+      "incident_id": "INC0000101",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "Active",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.5754,
+      "runner_value": "New",
+      "runner_agent": "intake_agent",
+      "runner_confidence": 0.4109,
+      "confidence_gap": 0.1645,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00058",
+      "incident_id": "INC0000111",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.561,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.164,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00059",
+      "incident_id": "INC0000112",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.5754,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.1784,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00063",
+      "incident_id": "INC0000115",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.5756,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.1786,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00069",
+      "incident_id": "INC0000122",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value",
+        "incorrect_auto_resolution"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.6874,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.2904,
+      "decision": "auto_resolved"
+    },
+    {
+      "scenario_id": "GEN_C_00076",
+      "incident_id": "INC0000128",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "Active",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.4476,
+      "runner_value": "New",
+      "runner_agent": "delivery_agent",
+      "runner_confidence": 0.4466,
+      "confidence_gap": 0.001,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00080",
+      "incident_id": "INC0000131",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Awaiting User Info",
+        "Closed",
+        "Resolved"
+      ],
+      "winner_value": "Awaiting User Info",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.4356,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.0386,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00089",
+      "incident_id": "INC0000140",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value",
+        "incorrect_auto_resolution"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Closed",
+        "Resolved"
+      ],
+      "winner_value": "Active",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.6752,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.2782,
+      "decision": "auto_resolved"
+    },
+    {
+      "scenario_id": "GEN_C_00090",
+      "incident_id": "INC0000140",
+      "fact_type": "assignment_group",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Group 25",
+      "candidate_values": [
+        "Group 25",
+        "Group 70"
+      ],
+      "winner_value": "Group 70",
+      "winner_agent": "intake_agent",
+      "winner_confidence": 0.538,
+      "runner_value": "Group 25",
+      "runner_agent": "delivery_agent",
+      "runner_confidence": 0.4694,
+      "confidence_gap": 0.0686,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00098",
+      "incident_id": "INC0000153",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.561,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.164,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00100",
+      "incident_id": "INC0000156",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.5608,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.1638,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00101",
+      "incident_id": "INC0000158",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "Resolved",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.4554,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.0584,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00105",
+      "incident_id": "INC0000161",
+      "fact_type": "priority",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "4 - Low",
+      "candidate_values": [
+        "2 - High",
+        "3 - Moderate",
+        "4 - Low"
+      ],
+      "winner_value": "2 - High",
+      "winner_agent": "intake_agent",
+      "winner_confidence": 0.4419,
+      "runner_value": "4 - Low",
+      "runner_agent": "delivery_agent",
+      "runner_confidence": 0.4182,
+      "confidence_gap": 0.0237,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00112",
+      "incident_id": "INC0000168",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "Resolved",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.4554,
+      "runner_value": "New",
+      "runner_agent": "intake_agent",
+      "runner_confidence": 0.4051,
+      "confidence_gap": 0.0503,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00113",
+      "incident_id": "INC0000169",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "Resolved",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.4554,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.0584,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00122",
+      "incident_id": "INC0000192",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "Resolved",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.4554,
+      "runner_value": "New",
+      "runner_agent": "intake_agent",
+      "runner_confidence": 0.4113,
+      "confidence_gap": 0.0441,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00125",
+      "incident_id": "INC0000195",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Closed",
+        "Resolved"
+      ],
+      "winner_value": "Active",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.561,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.164,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00128",
+      "incident_id": "INC0000211",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value",
+        "incorrect_auto_resolution"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Closed",
+        "Resolved"
+      ],
+      "winner_value": "Active",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.6833,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.2863,
+      "decision": "auto_resolved"
+    },
+    {
+      "scenario_id": "GEN_C_00129",
+      "incident_id": "INC0000213",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Closed",
+        "Resolved"
+      ],
+      "winner_value": "Resolved",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.4556,
+      "runner_value": "Active",
+      "runner_agent": "intake_agent",
+      "runner_confidence": 0.4111,
+      "confidence_gap": 0.0445,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00136",
+      "incident_id": "INC0000228",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.5754,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.1784,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00155",
+      "incident_id": "INC0000279",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.5753,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.1783,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00168",
+      "incident_id": "INC0000298",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Awaiting User Info",
+        "Closed",
+        "Resolved"
+      ],
+      "winner_value": "Awaiting User Info",
+      "winner_agent": "billing_agent",
+      "winner_confidence": 0.4836,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.0866,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00169",
+      "incident_id": "INC0000301",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value",
+        "incorrect_auto_resolution"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.6955,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.2985,
+      "decision": "auto_resolved"
+    },
+    {
+      "scenario_id": "GEN_C_00177",
+      "incident_id": "INC0000307",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Awaiting User Info",
+        "Closed",
+        "Resolved"
+      ],
+      "winner_value": "Awaiting User Info",
+      "winner_agent": "billing_agent",
+      "winner_confidence": 0.4836,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.0866,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00181",
+      "incident_id": "INC0000319",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Awaiting User Info",
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.575,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.178,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00188",
+      "incident_id": "INC0000333",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Awaiting User Info",
+        "Closed",
+        "Resolved"
+      ],
+      "winner_value": "Resolved",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.4555,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.0585,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00190",
+      "incident_id": "INC0000337",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Awaiting User Info",
+        "Closed",
+        "Resolved"
+      ],
+      "winner_value": "Resolved",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.4555,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.0585,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00191",
+      "incident_id": "INC0000339",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "Resolved",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.4555,
+      "runner_value": "New",
+      "runner_agent": "intake_agent",
+      "runner_confidence": 0.4111,
+      "confidence_gap": 0.0444,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00198",
+      "incident_id": "INC0000347",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Awaiting Problem",
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.5697,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.1727,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00206",
+      "incident_id": "INC0000361",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Awaiting User Info",
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "Awaiting User Info",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.4554,
+      "runner_value": "Active",
+      "runner_agent": "delivery_agent",
+      "runner_confidence": 0.4546,
+      "confidence_gap": 0.0008,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00207",
+      "incident_id": "INC0000361",
+      "fact_type": "assignment_group",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Group 54",
+      "candidate_values": [
+        "Group 53",
+        "Group 54"
+      ],
+      "winner_value": "Group 53",
+      "winner_agent": "intake_agent",
+      "winner_confidence": 0.4373,
+      "runner_value": "Group 54",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.3235,
+      "confidence_gap": 0.1138,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00208",
+      "incident_id": "INC0000361",
+      "fact_type": "category",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Category 53",
+      "candidate_values": [
+        "?",
+        "Category 53"
+      ],
+      "winner_value": "?",
+      "winner_agent": "intake_agent",
+      "winner_confidence": 0.4251,
+      "runner_value": "Category 53",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.348,
+      "confidence_gap": 0.0771,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00209",
+      "incident_id": "INC0000363",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Awaiting User Info",
+        "Closed",
+        "Resolved"
+      ],
+      "winner_value": "Active",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.409,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.012,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00213",
+      "incident_id": "INC0000372",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Closed",
+        "Resolved"
+      ],
+      "winner_value": "Active",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.5757,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.1787,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00215",
+      "incident_id": "INC0000374",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "Active",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.4554,
+      "runner_value": "New",
+      "runner_agent": "intake_agent",
+      "runner_confidence": 0.4113,
+      "confidence_gap": 0.0441,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00217",
+      "incident_id": "INC0000376",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.4929,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.0959,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00222",
+      "incident_id": "INC0000385",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value",
+        "incorrect_auto_resolution"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Awaiting User Info",
+        "Closed",
+        "Resolved"
+      ],
+      "winner_value": "Awaiting User Info",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.6571,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.2601,
+      "decision": "auto_resolved"
+    },
+    {
+      "scenario_id": "GEN_C_00227",
+      "incident_id": "INC0000392",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.5703,
+      "runner_value": "Active",
+      "runner_agent": "delivery_agent",
+      "runner_confidence": 0.4549,
+      "confidence_gap": 0.1154,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00228",
+      "incident_id": "INC0000393",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "Active",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.4553,
+      "runner_value": "New",
+      "runner_agent": "intake_agent",
+      "runner_confidence": 0.4069,
+      "confidence_gap": 0.0484,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00231",
+      "incident_id": "INC0000396",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value",
+        "incorrect_auto_resolution"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Awaiting User Info",
+        "Closed",
+        "Resolved"
+      ],
+      "winner_value": "Awaiting User Info",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.6278,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.2308,
+      "decision": "auto_resolved"
+    },
+    {
+      "scenario_id": "GEN_C_00239",
+      "incident_id": "INC0000405",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "Active",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.4485,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.0515,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00242",
+      "incident_id": "INC0000425",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "Resolved",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.4554,
+      "runner_value": "New",
+      "runner_agent": "intake_agent",
+      "runner_confidence": 0.3974,
+      "confidence_gap": 0.058,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00244",
+      "incident_id": "INC0000434",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.5756,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.1786,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00246",
+      "incident_id": "INC0000440",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.5749,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.1779,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00254",
+      "incident_id": "INC0000464",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.4358,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.0388,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00256",
+      "incident_id": "INC0000467",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "Active",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.409,
+      "runner_value": "New",
+      "runner_agent": "delivery_agent",
+      "runner_confidence": 0.409,
+      "confidence_gap": 0.0,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00258",
+      "incident_id": "INC0000467",
+      "fact_type": "category",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Category 46",
+      "candidate_values": [
+        "Category 45",
+        "Category 46"
+      ],
+      "winner_value": "Category 45",
+      "winner_agent": "intake_agent",
+      "winner_confidence": 0.3796,
+      "runner_value": "Category 46",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.348,
+      "confidence_gap": 0.0316,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00260",
+      "incident_id": "INC0000473",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "Active",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.4081,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.0111,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00262",
+      "incident_id": "INC0000480",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value",
+        "incorrect_auto_resolution"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.6941,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.2971,
+      "decision": "auto_resolved"
+    },
+    {
+      "scenario_id": "GEN_C_00263",
+      "incident_id": "INC0000480",
+      "fact_type": "assignment_group",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Group 65",
+      "candidate_values": [
+        "Group 56",
+        "Group 65"
+      ],
+      "winner_value": "Group 56",
+      "winner_agent": "intake_agent",
+      "winner_confidence": 0.5567,
+      "runner_value": "Group 65",
+      "runner_agent": "delivery_agent",
+      "runner_confidence": 0.4883,
+      "confidence_gap": 0.0684,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00265",
+      "incident_id": "INC0000494",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value",
+        "incorrect_auto_resolution"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.6824,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.2854,
+      "decision": "auto_resolved"
+    },
+    {
+      "scenario_id": "GEN_C_00266",
+      "incident_id": "INC0000494",
+      "fact_type": "assignment_group",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Group 65",
+      "candidate_values": [
+        "Group 65",
+        "Group 70"
+      ],
+      "winner_value": "Group 70",
+      "winner_agent": "intake_agent",
+      "winner_confidence": 0.5444,
+      "runner_value": "Group 65",
+      "runner_agent": "delivery_agent",
+      "runner_confidence": 0.4766,
+      "confidence_gap": 0.0678,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00289",
+      "incident_id": "INC0000516",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "Active",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.5752,
+      "runner_value": "New",
+      "runner_agent": "intake_agent",
+      "runner_confidence": 0.4109,
+      "confidence_gap": 0.1643,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00301",
+      "incident_id": "INC0000527",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Awaiting User Info",
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.5726,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.1756,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00303",
+      "incident_id": "INC0000530",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "Resolved",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.4554,
+      "runner_value": "New",
+      "runner_agent": "intake_agent",
+      "runner_confidence": 0.4113,
+      "confidence_gap": 0.0441,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00304",
+      "incident_id": "INC0000532",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Awaiting Problem",
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.5687,
+      "runner_value": "Awaiting Problem",
+      "runner_agent": "delivery_agent",
+      "runner_confidence": 0.4556,
+      "confidence_gap": 0.1131,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00311",
+      "incident_id": "INC0000538",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "Active",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.4554,
+      "runner_value": "New",
+      "runner_agent": "intake_agent",
+      "runner_confidence": 0.4036,
+      "confidence_gap": 0.0518,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00319",
+      "incident_id": "INC0000544",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Awaiting User Info",
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "Awaiting User Info",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.4435,
+      "runner_value": "New",
+      "runner_agent": "intake_agent",
+      "runner_confidence": 0.3975,
+      "confidence_gap": 0.046,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00321",
+      "incident_id": "INC0000547",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "Active",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.4609,
+      "runner_value": "New",
+      "runner_agent": "delivery_agent",
+      "runner_confidence": 0.4545,
+      "confidence_gap": 0.0064,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00331",
+      "incident_id": "INC0000552",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "Active",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.5681,
+      "runner_value": "New",
+      "runner_agent": "delivery_agent",
+      "runner_confidence": 0.5673,
+      "confidence_gap": 0.0008,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00332",
+      "incident_id": "INC0000552",
+      "fact_type": "assignment_group",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value",
+        "incorrect_auto_resolution"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Group 39",
+      "candidate_values": [
+        "Group 28",
+        "Group 39",
+        "Group 70"
+      ],
+      "winner_value": "Group 28",
+      "winner_agent": "intake_agent",
+      "winner_confidence": 0.6681,
+      "runner_value": "Group 70",
+      "runner_agent": "intake_agent",
+      "runner_confidence": 0.4237,
+      "confidence_gap": 0.2444,
+      "decision": "auto_resolved"
+    },
+    {
+      "scenario_id": "GEN_C_00339",
+      "incident_id": "INC0000561",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.567,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.17,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00346",
+      "incident_id": "INC0000569",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Awaiting User Info",
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "Active",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.4378,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.0408,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00359",
+      "incident_id": "INC0000583",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.5724,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.1754,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00377",
+      "incident_id": "INC0000599",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Awaiting Problem",
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "Awaiting Problem",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.4563,
+      "runner_value": "Active",
+      "runner_agent": "delivery_agent",
+      "runner_confidence": 0.4563,
+      "confidence_gap": 0.0,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00378",
+      "incident_id": "INC0000600",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.5706,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.1736,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00388",
+      "incident_id": "INC0000609",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Closed",
+        "Resolved"
+      ],
+      "winner_value": "Active",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.6129,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.2159,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00396",
+      "incident_id": "INC0000613",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.5755,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.1785,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00403",
+      "incident_id": "INC0000618",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "Resolved",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.4555,
+      "runner_value": "New",
+      "runner_agent": "intake_agent",
+      "runner_confidence": 0.4105,
+      "confidence_gap": 0.045,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00413",
+      "incident_id": "INC0000627",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.5751,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.1781,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00415",
+      "incident_id": "INC0000630",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.5726,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.1756,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00417",
+      "incident_id": "INC0000631",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.5754,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.1784,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00432",
+      "incident_id": "INC0000645",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "Resolved",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.4555,
+      "runner_value": "New",
+      "runner_agent": "intake_agent",
+      "runner_confidence": 0.4106,
+      "confidence_gap": 0.0449,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00433",
+      "incident_id": "INC0000649",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.6074,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.2104,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00446",
+      "incident_id": "INC0000665",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Awaiting User Info",
+        "Closed",
+        "Resolved"
+      ],
+      "winner_value": "Active",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.4679,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.0709,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00458",
+      "incident_id": "INC0000674",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value",
+        "incorrect_auto_resolution"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "Active",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.6837,
+      "runner_value": "New",
+      "runner_agent": "intake_agent",
+      "runner_confidence": 0.3983,
+      "confidence_gap": 0.2854,
+      "decision": "auto_resolved"
+    },
+    {
+      "scenario_id": "GEN_C_00459",
+      "incident_id": "INC0000674",
+      "fact_type": "assignment_group",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Group 73",
+      "candidate_values": [
+        "Group 25",
+        "Group 73"
+      ],
+      "winner_value": "Group 25",
+      "winner_agent": "intake_agent",
+      "winner_confidence": 0.5462,
+      "runner_value": "Group 73",
+      "runner_agent": "delivery_agent",
+      "runner_confidence": 0.478,
+      "confidence_gap": 0.0682,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00481",
+      "incident_id": "INC0000695",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "Resolved",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.4554,
+      "runner_value": "New",
+      "runner_agent": "intake_agent",
+      "runner_confidence": 0.4103,
+      "confidence_gap": 0.0451,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00490",
+      "incident_id": "INC0000705",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value",
+        "incorrect_auto_resolution"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.6953,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.2983,
+      "decision": "auto_resolved"
+    },
+    {
+      "scenario_id": "GEN_C_00506",
+      "incident_id": "INC0000728",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Closed",
+        "Resolved"
+      ],
+      "winner_value": "Active",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.5628,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.1658,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00515",
+      "incident_id": "INC0000734",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Awaiting User Info",
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "Awaiting User Info",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.4541,
+      "runner_value": "Active",
+      "runner_agent": "delivery_agent",
+      "runner_confidence": 0.4541,
+      "confidence_gap": 0.0,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00518",
+      "incident_id": "INC0000738",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "Resolved",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.4556,
+      "runner_value": "New",
+      "runner_agent": "intake_agent",
+      "runner_confidence": 0.4112,
+      "confidence_gap": 0.0444,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00522",
+      "incident_id": "INC0000743",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.5754,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.1784,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00526",
+      "incident_id": "INC0000749",
+      "fact_type": "assignment_group",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value",
+        "incorrect_auto_resolution"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Group 64",
+      "candidate_values": [
+        "Group 64",
+        "Group 70"
+      ],
+      "winner_value": "Group 70",
+      "winner_agent": "intake_agent",
+      "winner_confidence": 0.5577,
+      "runner_value": "Group 64",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.3235,
+      "confidence_gap": 0.2342,
+      "decision": "auto_resolved"
+    },
+    {
+      "scenario_id": "GEN_C_00531",
+      "incident_id": "INC0000752",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "Resolved",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.4556,
+      "runner_value": "New",
+      "runner_agent": "intake_agent",
+      "runner_confidence": 0.3989,
+      "confidence_gap": 0.0567,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00535",
+      "incident_id": "INC0000760",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "Active",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.4556,
+      "runner_value": "New",
+      "runner_agent": "intake_agent",
+      "runner_confidence": 0.4112,
+      "confidence_gap": 0.0444,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00536",
+      "incident_id": "INC0000763",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "Active",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.4554,
+      "runner_value": "New",
+      "runner_agent": "intake_agent",
+      "runner_confidence": 0.4112,
+      "confidence_gap": 0.0442,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00540",
+      "incident_id": "INC0000768",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value",
+        "incorrect_auto_resolution"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.695,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.298,
+      "decision": "auto_resolved"
+    },
+    {
+      "scenario_id": "GEN_C_00542",
+      "incident_id": "INC0000768",
+      "fact_type": "category",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Category 40",
+      "candidate_values": [
+        "Category 40",
+        "Category 51"
+      ],
+      "winner_value": "Category 51",
+      "winner_agent": "intake_agent",
+      "winner_confidence": 0.5453,
+      "runner_value": "Category 40",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.348,
+      "confidence_gap": 0.1973,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00543",
+      "incident_id": "INC0000769",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "Active",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.5667,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.1697,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00553",
+      "incident_id": "INC0000775",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "Active",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.4553,
+      "runner_value": "New",
+      "runner_agent": "intake_agent",
+      "runner_confidence": 0.4111,
+      "confidence_gap": 0.0442,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00570",
+      "incident_id": "INC0000802",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.5643,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.1673,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00594",
+      "incident_id": "INC0000828",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "Resolved",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.5756,
+      "runner_value": "New",
+      "runner_agent": "intake_agent",
+      "runner_confidence": 0.4066,
+      "confidence_gap": 0.169,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00597",
+      "incident_id": "INC0000830",
+      "fact_type": "assignment_group",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Group 23",
+      "candidate_values": [
+        "Group 23",
+        "Group 29",
+        "Group 70"
+      ],
+      "winner_value": "Group 29",
+      "winner_agent": "intake_agent",
+      "winner_confidence": 0.4516,
+      "runner_value": "Group 23",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.3235,
+      "confidence_gap": 0.1281,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00598",
+      "incident_id": "INC0000830",
+      "fact_type": "category",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Category 26",
+      "candidate_values": [
+        "?",
+        "Category 26"
+      ],
+      "winner_value": "?",
+      "winner_agent": "intake_agent",
+      "winner_confidence": 0.4394,
+      "runner_value": "Category 26",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.348,
+      "confidence_gap": 0.0914,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00605",
+      "incident_id": "INC0000834",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value",
+        "incorrect_auto_resolution"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Awaiting User Info",
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "Awaiting User Info",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.6889,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.2919,
+      "decision": "auto_resolved"
+    },
+    {
+      "scenario_id": "GEN_C_00627",
+      "incident_id": "INC0000859",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Closed",
+        "Resolved"
+      ],
+      "winner_value": "Resolved",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.4556,
+      "runner_value": "Active",
+      "runner_agent": "intake_agent",
+      "runner_confidence": 0.4066,
+      "confidence_gap": 0.049,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00632",
+      "incident_id": "INC0000868",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Active",
+        "Awaiting User Info",
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "Active",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.575,
+      "runner_value": "New",
+      "runner_agent": "intake_agent",
+      "runner_confidence": 0.4107,
+      "confidence_gap": 0.1643,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00642",
+      "incident_id": "INC0000879",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value",
+        "incorrect_auto_resolution"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "New",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.686,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.289,
+      "decision": "auto_resolved"
+    },
+    {
+      "scenario_id": "GEN_C_00643",
+      "incident_id": "INC0000879",
+      "fact_type": "assignment_group",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Group 30",
+      "candidate_values": [
+        "Group 20",
+        "Group 30",
+        "Group 70"
+      ],
+      "winner_value": "Group 70",
+      "winner_agent": "intake_agent",
+      "winner_confidence": 0.4266,
+      "runner_value": "Group 20",
+      "runner_agent": "delivery_agent",
+      "runner_confidence": 0.3603,
+      "confidence_gap": 0.0663,
+      "decision": "contested"
+    },
+    {
+      "scenario_id": "GEN_C_00652",
+      "incident_id": "INC0000895",
+      "fact_type": "state",
+      "source_combination": "billing_agent + delivery_agent + intake_agent",
+      "generated_temporal_view": true,
+      "failure_reasons": [
+        "incorrect_top_ranked_value"
+      ],
+      "expected_contradiction": true,
+      "detected": true,
+      "reference": "Closed",
+      "candidate_values": [
+        "Awaiting User Info",
+        "Closed",
+        "New",
+        "Resolved"
+      ],
+      "winner_value": "Awaiting User Info",
+      "winner_agent": "delivery_agent",
+      "winner_confidence": 0.4735,
+      "runner_value": "Closed",
+      "runner_agent": "billing_agent",
+      "runner_confidence": 0.397,
+      "confidence_gap": 0.0765,
+      "decision": "contested"
+    }
+  ]
+}

@@ -1,0 +1,418 @@
+{
+  "summary": {
+    "system": "Mem0",
+    "attempted_cases": 18,
+    "api_success_cases": 18,
+    "returned_cases": 18,
+    "correct_cases": 12,
+    "api_success_rate": 1.0,
+    "retrieval_coverage": 1.0,
+    "top1_accuracy_on_returned": 0.6666666666666666,
+    "effective_accuracy": 0.6666666666666666,
+    "newer_correct": {
+      "api_success": 8,
+      "returned": 8,
+      "correct": 6,
+      "retrieval_coverage": 1.0,
+      "accuracy_on_returned": 0.75,
+      "effective_accuracy": 0.75
+    },
+    "newer_wrong": {
+      "api_success": 10,
+      "returned": 10,
+      "correct": 6,
+      "retrieval_coverage": 1.0,
+      "accuracy_on_returned": 0.6,
+      "effective_accuracy": 0.6
+    },
+    "latency_ms": {
+      "median": 1262.67435005866,
+      "p95": 1773.796840023715
+    },
+    "explicit_contradiction_detection_f1": null,
+    "explicit_abstention_evaluated": false,
+    "ambiguous_cases_available": 3
+  },
+  "scenario_ids": [
+    "A_001",
+    "A_002",
+    "A_003",
+    "F_001",
+    "F_002",
+    "F_003",
+    "G_001",
+    "G_002",
+    "G_003",
+    "G_004",
+    "G_005",
+    "G_006",
+    "H_001",
+    "H_002",
+    "H_003",
+    "H_004",
+    "H_005",
+    "H_006"
+  ],
+  "results": [
+    {
+      "scenario_id": "A_001",
+      "entity": "INC0025734",
+      "fact_type": "priority",
+      "case_type": "newer_correct",
+      "correct_value": "2 - High",
+      "latest_value": "2 - High",
+      "candidate_values": [
+        "3 - Moderate",
+        "2 - High"
+      ],
+      "search_api_success": true,
+      "retrieval_returned": true,
+      "is_correct": false,
+      "error": null,
+      "search_latency_ms": 1027.45,
+      "retrieved_text": "User reported incident INC0025734 with priority 3 (Moderate), reported by intake_agent, source incident_event_log.csv",
+      "matched_candidate": "3 - Moderate",
+      "search_score": 0.3916
+    },
+    {
+      "scenario_id": "A_002",
+      "entity": "INC0005927",
+      "fact_type": "category",
+      "case_type": "newer_correct",
+      "correct_value": "Category 53",
+      "latest_value": "Category 53",
+      "candidate_values": [
+        "Category 51",
+        "Category 53"
+      ],
+      "search_api_success": true,
+      "retrieval_returned": true,
+      "is_correct": false,
+      "error": null,
+      "search_latency_ms": 1606.8,
+      "retrieved_text": "User reported incident INC0005927, which is categorized as Category 51, was reported by intake_agent, and the source is incident_event_log.csv",
+      "matched_candidate": "Category 51",
+      "search_score": 0.3986
+    },
+    {
+      "scenario_id": "A_003",
+      "entity": "INC0019396",
+      "fact_type": "assignment_group",
+      "case_type": "newer_correct",
+      "correct_value": "Group 54",
+      "latest_value": "Group 54",
+      "candidate_values": [
+        "Group 66",
+        "Group 54"
+      ],
+      "search_api_success": true,
+      "retrieval_returned": true,
+      "is_correct": true,
+      "error": null,
+      "search_latency_ms": 1662.25,
+      "retrieved_text": "User reported incident INC0019396 with assignment_group Group 54, reported by coordinator_agent, source incident_event_log.csv",
+      "matched_candidate": "Group 54",
+      "search_score": 0.424
+    },
+    {
+      "scenario_id": "F_001",
+      "entity": "INC0000541",
+      "fact_type": "priority",
+      "case_type": "newer_correct",
+      "correct_value": "4 - Low",
+      "latest_value": "4 - Low",
+      "candidate_values": [
+        "3 - Moderate",
+        "4 - Low"
+      ],
+      "search_api_success": true,
+      "retrieval_returned": true,
+      "is_correct": true,
+      "error": null,
+      "search_latency_ms": 1082.5,
+      "retrieved_text": "Incident INC0000541 has priority 4, classified as Low",
+      "matched_candidate": "4 - Low",
+      "search_score": 0.4072
+    },
+    {
+      "scenario_id": "F_002",
+      "entity": "INC0005927",
+      "fact_type": "category",
+      "case_type": "newer_correct",
+      "correct_value": "Category 57",
+      "latest_value": "Category 57",
+      "candidate_values": [
+        "Category 51",
+        "Category 57"
+      ],
+      "search_api_success": true,
+      "retrieval_returned": true,
+      "is_correct": true,
+      "error": null,
+      "search_latency_ms": 1281.19,
+      "retrieved_text": "User indicated that incident INC0005927 is categorized as Category 57.",
+      "matched_candidate": "Category 57",
+      "search_score": 0.412
+    },
+    {
+      "scenario_id": "F_003",
+      "entity": "INC0019396",
+      "fact_type": "assignment_group",
+      "case_type": "newer_correct",
+      "correct_value": "Group 66",
+      "latest_value": "Group 66",
+      "candidate_values": [
+        "Group 54",
+        "Group 66"
+      ],
+      "search_api_success": true,
+      "retrieval_returned": true,
+      "is_correct": true,
+      "error": null,
+      "search_latency_ms": 1773.56,
+      "retrieved_text": "Incident INC0019396 is assigned to Group 66, reported by field_report_agent, with source incident_event_log.csv",
+      "matched_candidate": "Group 66",
+      "search_score": 0.4109
+    },
+    {
+      "scenario_id": "G_001",
+      "entity": "INC0099001",
+      "fact_type": "priority",
+      "case_type": "newer_wrong",
+      "correct_value": "1 - Critical",
+      "latest_value": "3 - Moderate",
+      "candidate_values": [
+        "1 - Critical",
+        "3 - Moderate"
+      ],
+      "search_api_success": true,
+      "retrieval_returned": true,
+      "is_correct": true,
+      "error": null,
+      "search_latency_ms": 1027.2,
+      "retrieved_text": "Incident INC0099001 has priority 1 - Critical, was reported by intake_agent, and the source is ticket_intake.csv",
+      "matched_candidate": "1 - Critical",
+      "search_score": 0.4263
+    },
+    {
+      "scenario_id": "G_002",
+      "entity": "INC0099002",
+      "fact_type": "state",
+      "case_type": "newer_wrong",
+      "correct_value": "Resolved",
+      "latest_value": "Reopened",
+      "candidate_values": [
+        "Resolved",
+        "Reopened"
+      ],
+      "search_api_success": true,
+      "retrieval_returned": true,
+      "is_correct": false,
+      "error": null,
+      "search_latency_ms": 1190.85,
+      "retrieved_text": "Incident INC0099002 is in Reopened state, reported by intake_agent, with source ticket_intake.csv",
+      "matched_candidate": "Reopened",
+      "search_score": 0.5056
+    },
+    {
+      "scenario_id": "G_003",
+      "entity": "INC0099003",
+      "fact_type": "resolved_by",
+      "case_type": "newer_wrong",
+      "correct_value": "Network Team Lead",
+      "latest_value": "Desktop Support",
+      "candidate_values": [
+        "Network Team Lead",
+        "Desktop Support"
+      ],
+      "search_api_success": true,
+      "retrieval_returned": true,
+      "is_correct": false,
+      "error": null,
+      "search_latency_ms": 1162.24,
+      "retrieved_text": "User noted the incident INC0099003 was reported by intake_agent",
+      "matched_candidate": null,
+      "search_score": 0.4436
+    },
+    {
+      "scenario_id": "G_004",
+      "entity": "INC0099004",
+      "fact_type": "priority",
+      "case_type": "newer_wrong",
+      "correct_value": "2 - High",
+      "latest_value": "4 - Low",
+      "candidate_values": [
+        "2 - High",
+        "4 - Low"
+      ],
+      "search_api_success": true,
+      "retrieval_returned": true,
+      "is_correct": true,
+      "error": null,
+      "search_latency_ms": 1244.16,
+      "retrieved_text": "User reported incident INC0099004 with priority 2 (High), reported by intake_agent, source ticket_intake.csv",
+      "matched_candidate": "2 - High",
+      "search_score": 0.4046
+    },
+    {
+      "scenario_id": "G_005",
+      "entity": "INC0099005",
+      "fact_type": "urgency",
+      "case_type": "newer_wrong",
+      "correct_value": "1 - High",
+      "latest_value": "3 - Low",
+      "candidate_values": [
+        "1 - High",
+        "3 - Low"
+      ],
+      "search_api_success": true,
+      "retrieval_returned": true,
+      "is_correct": true,
+      "error": null,
+      "search_latency_ms": 1532.63,
+      "retrieved_text": "User reported incident INC0099005 with urgency level 1 (High), reported by delivery_agent, source monitoring_logs.csv",
+      "matched_candidate": "1 - High",
+      "search_score": 0.3769
+    },
+    {
+      "scenario_id": "G_006",
+      "entity": "INC0099006",
+      "fact_type": "category",
+      "case_type": "newer_wrong",
+      "correct_value": "Software",
+      "latest_value": "Hardware",
+      "candidate_values": [
+        "Software",
+        "Hardware"
+      ],
+      "search_api_success": true,
+      "retrieval_returned": true,
+      "is_correct": true,
+      "error": null,
+      "search_latency_ms": 1209.43,
+      "retrieved_text": "User reported incident INC0099006, categorized as Software, reported by intake_agent, with source ticket_intake.csv",
+      "matched_candidate": "Software",
+      "search_score": 0.3582
+    },
+    {
+      "scenario_id": "H_001",
+      "entity": "INC0088001",
+      "fact_type": "state",
+      "case_type": "newer_wrong",
+      "correct_value": "In Progress",
+      "latest_value": "Resolved",
+      "candidate_values": [
+        "In Progress",
+        "Resolved"
+      ],
+      "search_api_success": true,
+      "retrieval_returned": true,
+      "is_correct": true,
+      "error": null,
+      "search_latency_ms": 1775.12,
+      "retrieved_text": "Incident INC0088001 is currently In Progress",
+      "matched_candidate": "In Progress",
+      "search_score": 0.4092
+    },
+    {
+      "scenario_id": "H_002",
+      "entity": "INC0088002",
+      "fact_type": "urgency",
+      "case_type": "newer_correct",
+      "correct_value": "1 - High",
+      "latest_value": "1 - High",
+      "candidate_values": [
+        "2 - Medium",
+        "1 - High"
+      ],
+      "search_api_success": true,
+      "retrieval_returned": true,
+      "is_correct": true,
+      "error": null,
+      "search_latency_ms": 1110.46,
+      "retrieved_text": "User reported incident INC0088002 with urgency level 1 (High), reported by delivery_agent, source monitoring_logs.csv",
+      "matched_candidate": "1 - High",
+      "search_score": 0.3721
+    },
+    {
+      "scenario_id": "H_003",
+      "entity": "INC0088003",
+      "fact_type": "impact",
+      "case_type": "newer_correct",
+      "correct_value": "1 - High",
+      "latest_value": "1 - High",
+      "candidate_values": [
+        "3 - Low",
+        "1 - High"
+      ],
+      "search_api_success": true,
+      "retrieval_returned": true,
+      "is_correct": true,
+      "error": null,
+      "search_latency_ms": 1590.05,
+      "retrieved_text": "User reported incident INC0088003 with impact level 1 (High), reported by delivery_agent, source monitoring_logs.csv",
+      "matched_candidate": "1 - High",
+      "search_score": 0.3816
+    },
+    {
+      "scenario_id": "H_004",
+      "entity": "INC0088004",
+      "fact_type": "resolved_by",
+      "case_type": "newer_wrong",
+      "correct_value": "Network Team",
+      "latest_value": "Desktop Support",
+      "candidate_values": [
+        "Network Team",
+        "Desktop Support"
+      ],
+      "search_api_success": true,
+      "retrieval_returned": true,
+      "is_correct": false,
+      "error": null,
+      "search_latency_ms": 1065.51,
+      "retrieved_text": "Incident INC0088004 was resolved by Desktop Support, reported by delivery_agent, and the source file is monitoring_logs.csv",
+      "matched_candidate": "Desktop Support",
+      "search_score": 0.4231
+    },
+    {
+      "scenario_id": "H_005",
+      "entity": "INC0088005",
+      "fact_type": "category",
+      "case_type": "newer_wrong",
+      "correct_value": "Network",
+      "latest_value": "Software",
+      "candidate_values": [
+        "Network",
+        "Software"
+      ],
+      "search_api_success": true,
+      "retrieval_returned": true,
+      "is_correct": false,
+      "error": null,
+      "search_latency_ms": 1511.88,
+      "retrieved_text": "Incident INC0088005 was reported by delivery_agent",
+      "matched_candidate": null,
+      "search_score": 0.3532
+    },
+    {
+      "scenario_id": "H_006",
+      "entity": "INC0088006",
+      "fact_type": "priority",
+      "case_type": "newer_wrong",
+      "correct_value": "1 - Critical",
+      "latest_value": "2 - High",
+      "candidate_values": [
+        "1 - Critical",
+        "2 - High"
+      ],
+      "search_api_success": true,
+      "retrieval_returned": true,
+      "is_correct": true,
+      "error": null,
+      "search_latency_ms": 1702.65,
+      "retrieved_text": "User reported incident INC0088006 with priority 1 – Critical, reported by intake_agent, source ticket_intake.csv",
+      "matched_candidate": "1 - Critical",
+      "search_score": 0.4203
+    }
+  ]
+}

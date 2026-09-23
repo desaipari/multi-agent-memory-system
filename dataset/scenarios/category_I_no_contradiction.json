@@ -1,6 +1,6 @@
-{
+﻿{
   "category": "I",
-  "category_name": "No Contradiction — Corroboration Scenarios",
+  "category_name": "No Contradiction ΓÇö Corroboration Scenarios",
   "description": "Multiple agents agree on the same fact. System should NOT detect contradiction. Tests precision.",
   "scenarios": [
     {

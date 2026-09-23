@@ -1,0 +1,647 @@
+{
+  "summary": {
+    "system": "VeriMem V2",
+    "benchmark_protocol": "Same labelled contradiction cases used for Mem0 and Zep",
+    "configuration": {
+      "prior_strength": 5.0,
+      "corroboration_method": "noisy_or",
+      "minimum_winner_score": 0.35,
+      "minimum_winner_margin": 0.15,
+      "benchmark_trust_learning": false
+    },
+    "common_retrieval": {
+      "total_cases": 18,
+      "correct_top_ranked": 15,
+      "top_ranked_accuracy": 0.8333333333333334
+    },
+    "newer_correct": {
+      "total": 8,
+      "top_ranked_correct": 5,
+      "top_ranked_accuracy": 0.625,
+      "auto_resolved": 0,
+      "auto_resolution_coverage": 0.0,
+      "correct_auto_resolutions": 0,
+      "auto_resolution_accuracy": null,
+      "contested": 8,
+      "contested_rate": 1.0
+    },
+    "newer_wrong": {
+      "total": 10,
+      "top_ranked_correct": 10,
+      "top_ranked_accuracy": 1.0,
+      "auto_resolved": 2,
+      "auto_resolution_coverage": 0.2,
+      "correct_auto_resolutions": 2,
+      "auto_resolution_accuracy": 1.0,
+      "contested": 8,
+      "contested_rate": 0.8
+    },
+    "selective_resolution": {
+      "auto_resolved": 2,
+      "auto_resolution_coverage": 0.1111111111111111,
+      "correct_auto_resolutions": 2,
+      "auto_resolution_accuracy": 1.0,
+      "contested": 16,
+      "contested_rate": 0.8888888888888888
+    },
+    "ambiguous_cases": {
+      "total": 3,
+      "correctly_contested": 3,
+      "ambiguous_contest_rate": 1.0
+    }
+  },
+  "scenario_ids": [
+    "A_001",
+    "A_002",
+    "A_003",
+    "F_001",
+    "F_002",
+    "F_003",
+    "G_001",
+    "G_002",
+    "G_003",
+    "G_004",
+    "G_005",
+    "G_006",
+    "H_001",
+    "H_002",
+    "H_003",
+    "H_004",
+    "H_005",
+    "H_006"
+  ],
+  "results": [
+    {
+      "scenario_id": "A_001",
+      "entity": "INC0025734",
+      "fact_type": "priority",
+      "case_type": "newer_correct",
+      "correct_value": "2 - High",
+      "latest_value": "2 - High",
+      "decision": "contested",
+      "winner_value": "3 - Moderate",
+      "winner_score": 0.44292063492063494,
+      "runner_up_value": "2 - High",
+      "runner_up_score": 0.38,
+      "margin": 0.06292063492063493,
+      "is_correct": false,
+      "candidate_count": 2,
+      "observations": [
+        {
+          "agent_id": "intake_agent",
+          "value": "3 - Moderate",
+          "extraction_type": "direct",
+          "observed_at": "2016-05-04T09:47:00+00:00"
+        },
+        {
+          "agent_id": "delivery_agent",
+          "value": "2 - High",
+          "extraction_type": "direct",
+          "observed_at": "2016-05-04T09:51:00+00:00"
+        }
+      ]
+    },
+    {
+      "scenario_id": "A_002",
+      "entity": "INC0005927",
+      "fact_type": "category",
+      "case_type": "newer_correct",
+      "correct_value": "Category 53",
+      "latest_value": "Category 53",
+      "decision": "contested",
+      "winner_value": "Category 51",
+      "winner_score": 0.38885648148148144,
+      "runner_up_value": "Category 53",
+      "runner_up_score": 0.3555,
+      "margin": 0.03335648148148146,
+      "is_correct": false,
+      "candidate_count": 2,
+      "observations": [
+        {
+          "agent_id": "intake_agent",
+          "value": "Category 51",
+          "extraction_type": "direct",
+          "observed_at": "2016-03-11T11:25:00+00:00"
+        },
+        {
+          "agent_id": "delivery_agent",
+          "value": "Category 53",
+          "extraction_type": "direct",
+          "observed_at": "2016-03-14T08:20:00+00:00"
+        }
+      ]
+    },
+    {
+      "scenario_id": "A_003",
+      "entity": "INC0019396",
+      "fact_type": "assignment_group",
+      "case_type": "newer_correct",
+      "correct_value": "Group 54",
+      "latest_value": "Group 54",
+      "decision": "contested",
+      "winner_value": "Group 54",
+      "winner_score": 0.415,
+      "runner_up_value": "Group 66",
+      "runner_up_score": 0.2653809523809523,
+      "margin": 0.1496190476190477,
+      "is_correct": true,
+      "candidate_count": 2,
+      "observations": [
+        {
+          "agent_id": "intake_agent",
+          "value": "Group 66",
+          "extraction_type": "direct",
+          "observed_at": "2016-04-14T20:42:00+00:00"
+        },
+        {
+          "agent_id": "coordinator_agent",
+          "value": "Group 54",
+          "extraction_type": "direct",
+          "observed_at": "2016-04-20T11:12:00+00:00"
+        }
+      ]
+    },
+    {
+      "scenario_id": "F_001",
+      "entity": "INC0000541",
+      "fact_type": "priority",
+      "case_type": "newer_correct",
+      "correct_value": "4 - Low",
+      "latest_value": "4 - Low",
+      "decision": "contested",
+      "winner_value": "4 - Low",
+      "winner_score": 0.268,
+      "runner_up_value": "3 - Moderate",
+      "runner_up_score": 0.243,
+      "margin": 0.025000000000000022,
+      "is_correct": true,
+      "candidate_count": 2,
+      "observations": [
+        {
+          "agent_id": "intake_agent",
+          "value": "3 - Moderate",
+          "extraction_type": "direct",
+          "observed_at": "2016-03-01T09:13:00+00:00"
+        },
+        {
+          "agent_id": "billing_agent",
+          "value": "4 - Low",
+          "extraction_type": "direct",
+          "observed_at": "2016-03-12T13:44:00+00:00"
+        }
+      ]
+    },
+    {
+      "scenario_id": "F_002",
+      "entity": "INC0005927",
+      "fact_type": "category",
+      "case_type": "newer_correct",
+      "correct_value": "Category 57",
+      "latest_value": "Category 57",
+      "decision": "contested",
+      "winner_value": "Category 57",
+      "winner_score": 0.345,
+      "runner_up_value": "Category 51",
+      "runner_up_score": 0.3331388888888889,
+      "margin": 0.0118611111111111,
+      "is_correct": true,
+      "candidate_count": 2,
+      "observations": [
+        {
+          "agent_id": "intake_agent",
+          "value": "Category 51",
+          "extraction_type": "direct",
+          "observed_at": "2016-03-11T11:25:00+00:00"
+        },
+        {
+          "agent_id": "billing_agent",
+          "value": "Category 57",
+          "extraction_type": "direct",
+          "observed_at": "2016-03-22T16:55:00+00:00"
+        }
+      ]
+    },
+    {
+      "scenario_id": "F_003",
+      "entity": "INC0019396",
+      "fact_type": "assignment_group",
+      "case_type": "newer_correct",
+      "correct_value": "Group 66",
+      "latest_value": "Group 66",
+      "decision": "contested",
+      "winner_value": "Group 54",
+      "winner_score": 0.3275,
+      "runner_up_value": "Group 66",
+      "runner_up_score": 0.15039682539682536,
+      "margin": 0.17710317460317465,
+      "is_correct": false,
+      "candidate_count": 2,
+      "observations": [
+        {
+          "agent_id": "delivery_agent",
+          "value": "Group 54",
+          "extraction_type": "direct",
+          "observed_at": "2016-04-20T11:12:00+00:00"
+        },
+        {
+          "agent_id": "billing_agent",
+          "value": "Group 66",
+          "extraction_type": "direct",
+          "observed_at": "2016-04-14T21:08:00+00:00"
+        }
+      ]
+    },
+    {
+      "scenario_id": "G_001",
+      "entity": "INC0099001",
+      "fact_type": "priority",
+      "case_type": "newer_wrong",
+      "correct_value": "1 - Critical",
+      "latest_value": "3 - Moderate",
+      "decision": "contested",
+      "winner_value": "1 - Critical",
+      "winner_score": 0.34299999999999997,
+      "runner_up_value": "3 - Moderate",
+      "runner_up_score": 0.10049999999999998,
+      "margin": 0.2425,
+      "is_correct": true,
+      "candidate_count": 2,
+      "observations": [
+        {
+          "agent_id": "intake_agent",
+          "value": "1 - Critical",
+          "extraction_type": "direct",
+          "observed_at": null
+        },
+        {
+          "agent_id": "billing_agent",
+          "value": "3 - Moderate",
+          "extraction_type": "inferred",
+          "observed_at": null
+        }
+      ]
+    },
+    {
+      "scenario_id": "G_002",
+      "entity": "INC0099002",
+      "fact_type": "state",
+      "case_type": "newer_wrong",
+      "correct_value": "Resolved",
+      "latest_value": "Reopened",
+      "decision": "contested",
+      "winner_value": "Resolved",
+      "winner_score": 0.31499999999999995,
+      "runner_up_value": "Reopened",
+      "runner_up_score": 0.2195,
+      "margin": 0.09549999999999995,
+      "is_correct": true,
+      "candidate_count": 2,
+      "observations": [
+        {
+          "agent_id": "billing_agent",
+          "value": "Resolved",
+          "extraction_type": "direct",
+          "observed_at": null
+        },
+        {
+          "agent_id": "intake_agent",
+          "value": "Reopened",
+          "extraction_type": "inferred",
+          "observed_at": null
+        }
+      ]
+    },
+    {
+      "scenario_id": "G_003",
+      "entity": "INC0099003",
+      "fact_type": "resolved_by",
+      "case_type": "newer_wrong",
+      "correct_value": "Network Team Lead",
+      "latest_value": "Desktop Support",
+      "decision": "auto_resolve",
+      "winner_value": "Network Team Lead",
+      "winner_score": 0.35,
+      "runner_up_value": "Desktop Support",
+      "runner_up_score": 0.168,
+      "margin": 0.18199999999999997,
+      "is_correct": true,
+      "candidate_count": 2,
+      "observations": [
+        {
+          "agent_id": "billing_agent",
+          "value": "Network Team Lead",
+          "extraction_type": "direct",
+          "observed_at": null
+        },
+        {
+          "agent_id": "intake_agent",
+          "value": "Desktop Support",
+          "extraction_type": "direct",
+          "observed_at": null
+        }
+      ]
+    },
+    {
+      "scenario_id": "G_004",
+      "entity": "INC0099004",
+      "fact_type": "priority",
+      "case_type": "newer_wrong",
+      "correct_value": "2 - High",
+      "latest_value": "4 - Low",
+      "decision": "contested",
+      "winner_value": "2 - High",
+      "winner_score": 0.34299999999999997,
+      "runner_up_value": "4 - Low",
+      "runner_up_score": 0.10049999999999998,
+      "margin": 0.2425,
+      "is_correct": true,
+      "candidate_count": 2,
+      "observations": [
+        {
+          "agent_id": "intake_agent",
+          "value": "2 - High",
+          "extraction_type": "direct",
+          "observed_at": null
+        },
+        {
+          "agent_id": "billing_agent",
+          "value": "4 - Low",
+          "extraction_type": "inferred",
+          "observed_at": null
+        }
+      ]
+    },
+    {
+      "scenario_id": "G_005",
+      "entity": "INC0099005",
+      "fact_type": "urgency",
+      "case_type": "newer_wrong",
+      "correct_value": "1 - High",
+      "latest_value": "3 - Low",
+      "decision": "contested",
+      "winner_value": "1 - High",
+      "winner_score": 0.32899999999999996,
+      "runner_up_value": "3 - Low",
+      "runner_up_score": 0.1215,
+      "margin": 0.20749999999999996,
+      "is_correct": true,
+      "candidate_count": 2,
+      "observations": [
+        {
+          "agent_id": "delivery_agent",
+          "value": "1 - High",
+          "extraction_type": "direct",
+          "observed_at": null
+        },
+        {
+          "agent_id": "billing_agent",
+          "value": "3 - Low",
+          "extraction_type": "inferred",
+          "observed_at": null
+        }
+      ]
+    },
+    {
+      "scenario_id": "G_006",
+      "entity": "INC0099006",
+      "fact_type": "category",
+      "case_type": "newer_wrong",
+      "correct_value": "Software",
+      "latest_value": "Hardware",
+      "decision": "contested",
+      "winner_value": "Software",
+      "winner_score": 0.30799999999999994,
+      "runner_up_value": "Hardware",
+      "runner_up_score": 0.17749999999999996,
+      "margin": 0.13049999999999998,
+      "is_correct": true,
+      "candidate_count": 2,
+      "observations": [
+        {
+          "agent_id": "intake_agent",
+          "value": "Software",
+          "extraction_type": "direct",
+          "observed_at": null
+        },
+        {
+          "agent_id": "billing_agent",
+          "value": "Hardware",
+          "extraction_type": "inferred",
+          "observed_at": null
+        }
+      ]
+    },
+    {
+      "scenario_id": "H_001",
+      "entity": "INC0088001",
+      "fact_type": "state",
+      "case_type": "newer_wrong",
+      "correct_value": "In Progress",
+      "latest_value": "Resolved",
+      "decision": "contested",
+      "winner_value": "In Progress",
+      "winner_score": 0.35,
+      "runner_up_value": "Resolved",
+      "runner_up_score": 0.24749999999999997,
+      "margin": 0.10250000000000001,
+      "is_correct": true,
+      "candidate_count": 2,
+      "observations": [
+        {
+          "agent_id": "delivery_agent",
+          "value": "In Progress",
+          "extraction_type": "direct",
+          "observed_at": null
+        },
+        {
+          "agent_id": "billing_agent",
+          "value": "Resolved",
+          "extraction_type": "inferred",
+          "observed_at": null
+        }
+      ]
+    },
+    {
+      "scenario_id": "H_002",
+      "entity": "INC0088002",
+      "fact_type": "urgency",
+      "case_type": "newer_correct",
+      "correct_value": "1 - High",
+      "latest_value": "1 - High",
+      "decision": "contested",
+      "winner_value": "1 - High",
+      "winner_score": 0.32899999999999996,
+      "runner_up_value": "2 - Medium",
+      "runner_up_score": 0.1215,
+      "margin": 0.20749999999999996,
+      "is_correct": true,
+      "candidate_count": 2,
+      "observations": [
+        {
+          "agent_id": "billing_agent",
+          "value": "2 - Medium",
+          "extraction_type": "inferred",
+          "observed_at": null
+        },
+        {
+          "agent_id": "delivery_agent",
+          "value": "1 - High",
+          "extraction_type": "direct",
+          "observed_at": null
+        }
+      ]
+    },
+    {
+      "scenario_id": "H_003",
+      "entity": "INC0088003",
+      "fact_type": "impact",
+      "case_type": "newer_correct",
+      "correct_value": "1 - High",
+      "latest_value": "1 - High",
+      "decision": "contested",
+      "winner_value": "1 - High",
+      "winner_score": 0.31499999999999995,
+      "runner_up_value": "3 - Low",
+      "runner_up_score": 0.1495,
+      "margin": 0.16549999999999995,
+      "is_correct": true,
+      "candidate_count": 2,
+      "observations": [
+        {
+          "agent_id": "billing_agent",
+          "value": "3 - Low",
+          "extraction_type": "inferred",
+          "observed_at": null
+        },
+        {
+          "agent_id": "delivery_agent",
+          "value": "1 - High",
+          "extraction_type": "direct",
+          "observed_at": null
+        }
+      ]
+    },
+    {
+      "scenario_id": "H_004",
+      "entity": "INC0088004",
+      "fact_type": "resolved_by",
+      "case_type": "newer_wrong",
+      "correct_value": "Network Team",
+      "latest_value": "Desktop Support",
+      "decision": "auto_resolve",
+      "winner_value": "Network Team",
+      "winner_score": 0.35,
+      "runner_up_value": "Desktop Support",
+      "runner_up_score": 0.1495,
+      "margin": 0.20049999999999998,
+      "is_correct": true,
+      "candidate_count": 2,
+      "observations": [
+        {
+          "agent_id": "billing_agent",
+          "value": "Network Team",
+          "extraction_type": "direct",
+          "observed_at": null
+        },
+        {
+          "agent_id": "delivery_agent",
+          "value": "Desktop Support",
+          "extraction_type": "inferred",
+          "observed_at": null
+        }
+      ]
+    },
+    {
+      "scenario_id": "H_005",
+      "entity": "INC0088005",
+      "fact_type": "category",
+      "case_type": "newer_wrong",
+      "correct_value": "Network",
+      "latest_value": "Software",
+      "decision": "contested",
+      "winner_value": "Network",
+      "winner_score": 0.25549999999999995,
+      "runner_up_value": "Software",
+      "runner_up_score": 0.17749999999999996,
+      "margin": 0.07799999999999999,
+      "is_correct": true,
+      "candidate_count": 2,
+      "observations": [
+        {
+          "agent_id": "delivery_agent",
+          "value": "Network",
+          "extraction_type": "direct",
+          "observed_at": null
+        },
+        {
+          "agent_id": "billing_agent",
+          "value": "Software",
+          "extraction_type": "inferred",
+          "observed_at": null
+        }
+      ]
+    },
+    {
+      "scenario_id": "H_006",
+      "entity": "INC0088006",
+      "fact_type": "priority",
+      "case_type": "newer_wrong",
+      "correct_value": "1 - Critical",
+      "latest_value": "2 - High",
+      "decision": "contested",
+      "winner_value": "1 - Critical",
+      "winner_score": 0.34299999999999997,
+      "runner_up_value": "2 - High",
+      "runner_up_score": 0.10049999999999998,
+      "margin": 0.2425,
+      "is_correct": true,
+      "candidate_count": 2,
+      "observations": [
+        {
+          "agent_id": "intake_agent",
+          "value": "1 - Critical",
+          "extraction_type": "direct",
+          "observed_at": null
+        },
+        {
+          "agent_id": "billing_agent",
+          "value": "2 - High",
+          "extraction_type": "inferred",
+          "observed_at": null
+        }
+      ]
+    }
+  ],
+  "ambiguous_results": [
+    {
+      "scenario_id": "B_001",
+      "entity": "INC0007236",
+      "fact_type": "urgency",
+      "decision": "contested",
+      "winner_value": "1 - High",
+      "winner_score": 0.429,
+      "margin": 0.08376587301587302,
+      "correct_behavior": true
+    },
+    {
+      "scenario_id": "B_002",
+      "entity": "INC0000541",
+      "fact_type": "priority",
+      "decision": "contested",
+      "winner_value": "4 - Low",
+      "winner_score": 0.20049999999999998,
+      "margin": 0.02049999999999999,
+      "correct_behavior": true
+    },
+    {
+      "scenario_id": "B_003",
+      "entity": "INC0005927",
+      "fact_type": "assignment_group",
+      "decision": "contested",
+      "winner_value": "Group 69",
+      "winner_score": 0.3178769841269841,
+      "margin": 0.07537698412698413,
+      "correct_behavior": true
+    }
+  ]
+}

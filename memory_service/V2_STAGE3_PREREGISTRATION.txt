@@ -1,0 +1,48 @@
+VeriMem V2 Stage 3 Multi-Seed Replication
+
+Seeds:
+73 through 102 inclusive (30 independent controlled DEV benchmark draws).
+
+Frozen confidence equation:
+Confidence =
+0.35 * SourceReliability
++ 0.30 * Corroboration
++ 0.15 * ExtractionDirectness
+- 0.20 * TimeDecayPenalty
+
+Primary VeriMem configuration:
+- Learned contextual trust R(agent, fact_type)
+- noisy-OR corroboration
+- prior strength m = 5
+- verified outcomes only update trust
+- 300 verified adaptation scenarios per regime
+- no CAL or TEST data
+
+Primary metrics:
+1. Conflict-only candidate-selection accuracy.
+2. Newer-wrong overwrite prevention.
+
+Secondary metrics:
+- Overall candidate-selection accuracy.
+- Newer-correct acceptance.
+- Ambiguous low-gap rate.
+- Trust convergence MAE.
+
+Primary robustness hypothesis:
+- In ALIGNED, Learned VeriMem should remain approximately comparable
+  to Fixed VeriMem because the expert priors are already appropriate.
+- In MIXED and SHIFTED, Learned VeriMem should outperform Fixed VeriMem
+  in conflict-only candidate-selection accuracy.
+- The primary effect will be evaluated using the paired seed-wise
+  difference Learned - Fixed. A 95% CI excluding zero in MIXED or
+  SHIFTED will be treated as evidence that the adaptive-trust benefit
+  is stable across benchmark draws.
+
+Stress hypothesis:
+Learned VeriMem should prevent incorrect newer overwrites more often
+than Fixed VeriMem under source-authority mismatch. This will also be
+evaluated using the paired seed-wise difference and its 95% CI.
+
+m=10 and m=20 and log-odds are sensitivity/ablation conditions and
+will not replace the pre-registered primary noisy-OR, m=5 configuration
+based on whichever multi-seed result is highest.

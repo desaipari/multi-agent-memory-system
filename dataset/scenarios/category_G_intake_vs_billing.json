@@ -1,6 +1,6 @@
-{
+﻿{
   "category": "G",
-  "category_name": "Intake vs Billing Agent — Clear Source Authority Difference",
+  "category_name": "Intake vs Billing Agent ΓÇö Clear Source Authority Difference",
   "description": "Billing agent reads from old transferred records (inferred). Intake agent reads from current ticket system (direct). Large confidence gap expected due to source authority difference.",
   "scenarios": [
     {

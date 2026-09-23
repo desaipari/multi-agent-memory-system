@@ -1,8 +1,54 @@
 from sqlalchemy import Column, String, Float, DateTime, Text, Integer, Boolean
 from sqlalchemy.sql import func
+from sqlalchemy import UniqueConstraint
 from database import Base
 import uuid
+class ContextTrust(Base):
+    __tablename__ = "context_trust"
 
+    context_id = Column(
+        String,
+        primary_key=True,
+        default=lambda: str(uuid.uuid4())
+    )
+
+    agent_id = Column(
+        String,
+        nullable=False
+    )
+
+    fact_type = Column(
+        String,
+        nullable=False,
+        default="*"
+    )
+
+    extraction_type = Column(
+        String,
+        nullable=False,
+        default="*"
+    )
+
+    successes = Column(
+        Integer,
+        nullable=False,
+        default=0
+    )
+
+    failures = Column(
+        Integer,
+        nullable=False,
+        default=0
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            "agent_id",
+            "fact_type",
+            "extraction_type",
+            name="uq_context_trust"
+        ),
+    )
 class Fact(Base):
     __tablename__ = "facts"
 
@@ -26,6 +72,10 @@ class Fact(Base):
     # Comma-separated list of agent_ids that can read this fact
     # "all" means any agent can read it
     readable_by = Column(String, default="all")
+    observed_at = Column(
+    DateTime(timezone=True),
+    nullable=True
+)
 
 class Agent(Base):
     __tablename__ = "agents"

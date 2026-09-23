@@ -8,25 +8,39 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional
 import hashlib
-from datetime import datetime, timezone
-from access_control import get_default_access, filter_facts_for_agent
+from datetime import datetime, timezone, date, time, timedelta
 from contextlib import asynccontextmanager
+from verimem_core.config import (
+    PRIOR_STRENGTH,
+    get_expert_prior,
+    MIN_WINNER_SCORE,
+    MIN_WINNER_MARGIN,
+)
+from access_control import get_default_access, filter_facts_for_agent
 from database import engine, get_db, Base
 from models import (
     Fact, Agent, Conflict, AuditLog,
-    HashMap, ActionGateLog
+    HashMap, ActionGateLog, ContextTrust
 )
 from vector_store import (
     ensure_collection_exists,
     store_embedding,
-    find_similar_facts
 )
-from confidence_scorer import (
-    compute_confidence,
-    should_auto_resolve,
-    update_agent_trust_after_resolution,
-    DEFAULT_AGENT_TRUST_SCORE
-)
+
+# VeriMem V2 pure scoring core.
+# The dashboard and agent pipeline continue to use the same REST API;
+# main.py adapts database rows into the pure resolver's Observation objects.
+from verimem_core.types import Observation
+from verimem_core.providers import InMemoryTrustProvider
+from verimem_core.resolver import resolve, normalize_value
+# ---------------------------------------------------------------------------
+# Frozen V2 runtime settings.
+# ---------------------------------------------------------------------------
+# PRIOR_STRENGTH, MIN_WINNER_SCORE and MIN_WINNER_MARGIN are imported from
+# verimem_core.config so the runtime has one source of truth for calibrated
+# parameters. Corroboration is frozen to noisy-OR from the V2 experiments.
+V2_CORROBORATION_METHOD = "noisy_or"
+
 
 Base.metadata.create_all(bind=engine)
 
@@ -44,8 +58,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Multi-Agent Incident Memory Service",
-    version="4.0.0",
-    description="Week 4 — Performance optimized",
+    version="5.0.0",
+    description="VeriMem V2 integrated memory service",
     lifespan=lifespan
 )
 
@@ -63,252 +77,407 @@ def hash_value(text: str) -> str:
         text.strip().lower().encode()
     ).hexdigest()
 
+
+def canonical_fact_type(fact_type: str) -> str:
+    """
+    Normalize equivalent fact-type names before storage/scoring.
+
+    This prevents the same skill from being split into separate trust buckets,
+    e.g. "incident_state" and "state".
+    """
+    value = (fact_type or "").lower().strip()
+    aliases = {
+        "incident_state": "state",
+        "incident state": "state",
+        "incident-state": "state",
+        "assignment group": "assignment_group",
+        "assignment-group": "assignment_group",
+        "opened date": "opened_date",
+        "opened-date": "opened_date",
+        "resolved by": "resolved_by",
+        "resolved-by": "resolved_by",
+    }
+    return aliases.get(value, value)
+
+
 def store_hash_mapping(db: Session, original: str, hashed: str):
     existing = db.query(HashMap).filter(
         HashMap.hash_value == hashed
     ).first()
     if not existing:
         db.add(HashMap(hash_value=hashed, original_value=original))
-        db.commit()
+        db.flush()
+
 
 def ensure_agent_exists(db: Session, agent_id: str):
+    """
+    Keep the legacy Agent row for the existing dashboard scoreboard.
+
+    V2 decision-making does NOT use this global score. Actual resolution trust
+    is contextual R(agent, fact_type) and comes from ContextTrust + expert prior.
+    """
     agent = db.query(Agent).filter(
         Agent.agent_id == agent_id
     ).first()
 
     if not agent:
-        initial_trust = 0.50
-
+        initial_trust = get_expert_prior(agent_id, "__default__")
         db.add(Agent(
             agent_id=agent_id,
             trust_score=initial_trust,
-            reliability_score=initial_trust
+            reliability_score=initial_trust,
         ))
-        db.commit()
+        db.flush()
 
-def get_agent_trust(db: Session, agent_id: str) -> float:
+
+def build_trust_provider(db: Session) -> InMemoryTrustProvider:
+    """
+    Snapshot verified contextual trust from PostgreSQL into memory.
+
+    The resolver itself remains pure and performs no database queries.
+    V2 learns R(agent, fact_type); extraction directness is a separate
+    confidence component, so any historical extraction-specific rows are
+    aggregated into the same agent/fact bucket.
+    """
+    provider = InMemoryTrustProvider()
+    aggregate = {}
+
+    for row in db.query(ContextTrust).all():
+        fact_type = canonical_fact_type(row.fact_type)
+        key = (row.agent_id, fact_type)
+        if key not in aggregate:
+            aggregate[key] = [0, 0]
+        aggregate[key][0] += row.successes or 0
+        aggregate[key][1] += row.failures or 0
+
+    for (agent_id, fact_type), (successes, failures) in aggregate.items():
+        provider.set_stats(
+            agent_id=agent_id,
+            fact_type=fact_type,
+            successes=successes,
+            failures=failures,
+        )
+
+    return provider
+
+
+def fact_to_observation(fact: Fact) -> Observation:
+    """Convert a database Fact into the pure V2 resolver input type."""
+    return Observation(
+        fact_id=fact.fact_id,
+        agent_id=fact.agent_id,
+        fact_type=canonical_fact_type(fact.fact_type),
+        value=fact.raw_value or "",
+        extraction_type=fact.extraction_type or "direct",
+        # observed_at is event time. We deliberately do not substitute the
+        # ingestion timestamp when it is missing; V2 uses a neutral time
+        # penalty for missing observation time.
+        observed_at=fact.observed_at,
+    )
+
+
+def candidate_fact_id(candidate: Optional[dict]) -> Optional[str]:
+    if not candidate:
+        return None
+    evidence = candidate.get("evidence") or []
+    return evidence[0].get("fact_id") if evidence else None
+
+
+def apply_candidate_scores(facts, result: dict):
+    """
+    Store the candidate-level V2 score back on each supporting Fact.
+
+    This preserves the existing dashboard contract: the dashboard can continue
+    displaying Fact.confidence without needing any frontend changes.
+    """
+    candidate_by_value = {
+        candidate["normalized_value"]: candidate
+        for candidate in result.get("candidates", [])
+    }
+
+    for fact in facts:
+        candidate = candidate_by_value.get(
+            normalize_value(fact.raw_value)
+        )
+        if candidate:
+            fact.confidence = candidate["score"]
+            fact.corroboration_count = candidate["distinct_agent_count"]
+
+
+def get_context_row(db: Session, agent_id: str, fact_type: str) -> ContextTrust:
+    """
+    Return/create the single V2 contextual-trust row for an agent/fact pair.
+
+    extraction_type='*' is used for compatibility with the existing table
+    schema because V2 learns R(agent,fact), not R(agent,fact,extraction).
+    """
+    fact_type = canonical_fact_type(fact_type)
+    row = db.query(ContextTrust).filter(
+        ContextTrust.agent_id == agent_id,
+        ContextTrust.fact_type == fact_type,
+        ContextTrust.extraction_type == "*",
+    ).first()
+
+    if not row:
+        row = ContextTrust(
+            agent_id=agent_id,
+            fact_type=fact_type,
+            extraction_type="*",
+            successes=0,
+            failures=0,
+        )
+        db.add(row)
+        db.flush()
+
+    return row
+
+
+def refresh_dashboard_agent_score(db: Session, agent_id: str):
+    """
+    Update the legacy global Agent score for display only.
+
+    The dashboard expects one trust_score per agent. We keep that API stable by
+    showing the mean of the agent's contextual posterior estimates. Resolution
+    logic itself never uses this aggregate value.
+    """
+    agent = db.query(Agent).filter(
+        Agent.agent_id == agent_id
+    ).first()
+    if not agent:
+        return
+
+    provider = build_trust_provider(db)
+    fact_types = {
+        canonical_fact_type(row.fact_type)
+        for row in db.query(ContextTrust).filter(
+            ContextTrust.agent_id == agent_id
+        ).all()
+    }
+
+    if fact_types:
+        values = [
+            provider.get_trust(
+                agent_id=agent_id,
+                fact_type=fact_type,
+                prior_strength=PRIOR_STRENGTH,
+            )["probability"]
+            for fact_type in fact_types
+        ]
+        score = sum(values) / len(values)
+    else:
+        score = get_expert_prior(agent_id, "__default__")
+
+    agent.trust_score = score
+    agent.reliability_score = score
+
+
+def record_verified_outcome(
+    db: Session,
+    agent_id: str,
+    fact_type: str,
+    correct: bool,
+):
+    """
+    Update contextual trust only from an externally verified resolution.
+
+    Auto-resolutions never train trust. This prevents a self-reinforcing loop
+    where the system rewards whichever source it already preferred.
+    """
+    row = get_context_row(db, agent_id, fact_type)
+
+    if correct:
+        row.successes = (row.successes or 0) + 1
+    else:
+        row.failures = (row.failures or 0) + 1
+
     agent = db.query(Agent).filter(
         Agent.agent_id == agent_id
     ).first()
     if agent:
-        return agent.trust_score
-    return DEFAULT_AGENT_TRUST_SCORE
+        if correct:
+            agent.correct_writes = (agent.correct_writes or 0) + 1
+        else:
+            agent.overturned_writes = (agent.overturned_writes or 0) + 1
 
-def check_and_handle_contradiction(
+    db.flush()
+    refresh_dashboard_agent_score(db, agent_id)
+
+
+def is_verified_human(resolved_by: str) -> bool:
+    """
+    Coordinator/system resolutions may still use the existing endpoint for
+    compatibility, but they do not become trust-training labels.
+    """
+    value = (resolved_by or "").strip().lower()
+    return value not in {
+        "coordinator",
+        "coordinator_agent",
+        "system",
+        "auto",
+        "automatic",
+    }
+
+
+def _resolve_current_candidates(
     db: Session,
-    new_fact: Fact,
+    facts,
     entity_hash: str,
     fact_type: str,
-    new_value: str
+    detection_method: str = "database_candidate_grouping",
 ) -> Optional[dict]:
     """
-    Detect contradiction and immediately resolve or flag it.
+    Score all current candidate values for one entity/fact type using V2.
 
-    Stage 1 — Direct PostgreSQL check (primary, most reliable)
-    Stage 2 — Qdrant semantic search (catches paraphrasing)
-
-    Resolution:
-    - If confidence gap >= 0.30: auto-resolve
-    - If confidence gap < 0.30: mark both contested, flag for human
+    All active/contested observations are supplied together, so corroboration
+    is computed from additional independent supporters instead of from a simple
+    counter. The current Conflict table is pairwise, therefore the database
+    record stores the top two candidate representatives while the resolver can
+    still consider more than two candidates internally.
     """
+    if not facts:
+        return None
 
-    # ── Stage 1: Direct check ──────────────────────────────────
-    existing_facts = db.query(Fact).filter(
-        Fact.entity_hash == entity_hash,
-        Fact.fact_type == fact_type,
-        Fact.status == "active",
-        Fact.fact_id != new_fact.fact_id
-    ).all()
+    provider = build_trust_provider(db)
+    observations = [fact_to_observation(fact) for fact in facts]
 
-    for existing_fact in existing_facts:
-        if (existing_fact.raw_value and
-            existing_fact.raw_value.strip().lower()
-                != new_value.strip().lower()):
+    result = resolve(
+    observations=observations,
+    provider=provider,
+    prior_strength=PRIOR_STRENGTH,
+    corroboration_method=V2_CORROBORATION_METHOD,
+    min_winner_score=MIN_WINNER_SCORE,
+    min_margin=MIN_WINNER_MARGIN,
+)
 
-            return _handle_conflict(
-                db, existing_fact, new_fact,
-                entity_hash, fact_type,
-                detection_method="direct_database_check"
-            )
+    apply_candidate_scores(facts, result)
 
-    # ── Stage 2: Qdrant semantic search ───────────────────────
-    try:
-        similar = find_similar_facts(
-            entity_hash=entity_hash,
-            fact_type=fact_type,
-            value=new_value,
-            threshold=0.70
-        )
+    # One candidate value means corroboration/no conflict.
+    if result["decision"] == "no_conflict":
+        return None
 
-        for match in similar:
-            if match["fact_id"] == new_fact.fact_id:
-                continue
+    winner_candidate = result.get("winner")
+    runner_up_candidate = result.get("runner_up")
+    winner_id = candidate_fact_id(winner_candidate)
+    runner_up_id = candidate_fact_id(runner_up_candidate)
 
-            existing_fact = db.query(Fact).filter(
-                Fact.fact_id == match["fact_id"],
-                Fact.status == "active"
-            ).first()
+    if not winner_id or not runner_up_id:
+        return None
 
-            if not existing_fact:
-                continue
+    winner_fact = next(f for f in facts if f.fact_id == winner_id)
+    runner_up_fact = next(f for f in facts if f.fact_id == runner_up_id)
+    margin = result.get("margin") or 0.0
 
-            if (existing_fact.raw_value and
-                existing_fact.raw_value.strip().lower()
-                    != new_value.strip().lower()):
-
-                return _handle_conflict(
-                    db, existing_fact, new_fact,
-                    entity_hash, fact_type,
-                    detection_method="semantic_search",
-                    similarity_score=match["similarity_score"]
-                )
-
-    except Exception as e:
-        print(f"Stage 2 error (non-fatal): {e}")
-
-    return None
-
-
-def _handle_conflict(
-    db: Session,
-    existing_fact: Fact,
-    new_fact: Fact,
-    entity_hash: str,
-    fact_type: str,
-    detection_method: str,
-    similarity_score: float = None
-) -> dict:
-    """
-    Given two conflicting facts, decide resolution:
-    - Auto-resolve if confidence gap >= 0.30
-    - Flag as contested if gap < 0.30
-    """
-    conf_existing = existing_fact.confidence
-    conf_new = new_fact.confidence
+    conflict = Conflict(
+        fact_id_a=winner_fact.fact_id,
+        fact_id_b=runner_up_fact.fact_id,
+        entity_hash=entity_hash,
+        fact_type=fact_type,
+        status="flagged",
+    )
+    db.add(conflict)
+    db.flush()
 
     print(f"\nCONTRADICTION DETECTED ({detection_method})")
     print(f"  fact_type: {fact_type}")
-    print(f"  Existing: {existing_fact.raw_value} "
-          f"(agent:{existing_fact.agent_id}, conf:{conf_existing:.3f})")
-    print(f"  New:      {new_fact.raw_value} "
-          f"(agent:{new_fact.agent_id}, conf:{conf_new:.3f})")
-
-    conflict = Conflict(
-        fact_id_a=existing_fact.fact_id,
-        fact_id_b=new_fact.fact_id,
-        entity_hash=entity_hash,
-        fact_type=fact_type,
-        status="flagged"
+    print(
+        f"  Winner candidate: {winner_candidate['value']} "
+        f"(score:{winner_candidate['score']:.3f})"
     )
-    db.add(conflict)
-    db.flush()  # get conflict_id before committing
+    print(
+        f"  Runner-up: {runner_up_candidate['value']} "
+        f"(score:{runner_up_candidate['score']:.3f})"
+    )
 
-    if should_auto_resolve(conf_existing, conf_new):
-        # ── Auto-resolve ───────────────────────────────────────
-        gap = abs(conf_existing - conf_new)
+    if result["decision"] == "auto_resolve":
+        winning_value = winner_candidate["normalized_value"]
 
-        if conf_existing >= conf_new:
-            winner = existing_fact
-            loser = new_fact
-        else:
-            winner = new_fact
-            loser = existing_fact
+        # All observations supporting the winning candidate remain active.
+        # Every other candidate is superseded only after V2 resolution.
+        for fact in facts:
+            if normalize_value(fact.raw_value) == winning_value:
+                fact.status = "active"
+                fact.conflict_id = None
+            else:
+                fact.status = "superseded"
+                fact.superseded_by = winner_fact.fact_id
+                fact.conflict_id = None
 
-        # Mark loser as superseded
-        loser.status = "superseded"
-        loser.superseded_by = winner.fact_id
-
-        # Winner stays active
-        winner.status = "active"
-
-        # Update conflict record
         conflict.status = "auto_resolved"
-        conflict.resolved_winner = winner.fact_id
+        conflict.resolved_winner = winner_fact.fact_id
         conflict.resolution_type = "auto_resolve"
         conflict.resolution_reason = (
-            f"Auto-resolved: confidence gap {gap:.3f} >= 0.30. "
-            f"Winner: {winner.agent_id} ({winner.confidence:.3f}) "
-            f"over {loser.agent_id} ({loser.confidence:.3f})"
+            f"V2 auto-resolution: winner score {winner_candidate['score']:.3f} "
+            f"(required >= {MIN_WINNER_SCORE:.2f}), margin {margin:.3f} "
+            f"(required >= {MIN_WINNER_MARGIN:.2f}). "
+            f"No trust learning is performed from automatic decisions."
         )
         conflict.resolved_at = datetime.now(timezone.utc)
 
-        # Update agent trust scores
-        update_agent_trust_after_resolution(
-            winner.agent_id, loser.agent_id, db
-        )
-
         db.add(AuditLog(
             event_type="auto_resolved",
-            fact_id=winner.fact_id,
-            agent_id=winner.agent_id,
+            fact_id=winner_fact.fact_id,
+            agent_id=winner_fact.agent_id,
             description=(
-                f"Auto-resolved {fact_type}: "
-                f"'{winner.raw_value}' beat "
-                f"'{loser.raw_value}' "
-                f"(gap: {gap:.3f})"
-            )
+                f"V2 auto-resolved {fact_type}: "
+                f"'{winner_candidate['value']}' won with score "
+                f"{winner_candidate['score']:.3f} and margin {margin:.3f}. "
+                f"Automatic resolution did not update contextual trust."
+            ),
         ))
-        db.commit()
-
-        print(f"  AUTO-RESOLVED: {winner.raw_value} wins "
-              f"(gap: {gap:.3f})")
 
         return {
             "conflict_id": conflict.conflict_id,
             "resolution": "auto_resolved",
-            "winner_value": winner.raw_value,
-            "winner_agent": winner.agent_id,
-            "loser_value": loser.raw_value,
-            "loser_agent": loser.agent_id,
-            "confidence_gap": round(gap, 4),
-            "detection_method": detection_method
-        }
-
-    else:
-        # ── Flag as contested — human review needed ────────────
-        gap = abs(conf_existing - conf_new)
-
-        existing_fact.status = "contested"
-        existing_fact.conflict_id = conflict.conflict_id
-        new_fact.status = "contested"
-        new_fact.conflict_id = conflict.conflict_id
-
-        conflict.status = "flagged"
-        conflict.resolution_type = "human_review"
-        conflict.resolution_reason = (
-            f"Flagged for human review: gap {gap:.3f} < 0.30. "
-            f"Too close to auto-resolve safely."
-        )
-
-        db.add(AuditLog(
-            event_type="conflict_detected",
-            fact_id=new_fact.fact_id,
-            agent_id=new_fact.agent_id,
-            description=(
-                f"Contested {fact_type}: "
-                f"'{existing_fact.raw_value}' ({conf_existing:.3f}) "
-                f"vs '{new_fact.raw_value}' ({conf_new:.3f}). "
-                f"Gap {gap:.3f} too small to auto-resolve."
-            )
-        ))
-        db.commit()
-
-        print(f"  CONTESTED: gap {gap:.3f} too small — "
-              f"flagged for human review")
-
-        return {
-            "conflict_id": conflict.conflict_id,
-            "resolution": "contested",
-            "value_a": existing_fact.raw_value,
-            "agent_a": existing_fact.agent_id,
-            "confidence_a": conf_existing,
-            "value_b": new_fact.raw_value,
-            "agent_b": new_fact.agent_id,
-            "confidence_b": conf_new,
-            "confidence_gap": round(gap, 4),
+            "winner_value": winner_candidate["value"],
+            "winner_agent": winner_fact.agent_id,
+            "loser_value": runner_up_candidate["value"],
+            "loser_agent": runner_up_fact.agent_id,
+            "winner_score": round(winner_candidate["score"], 4),
+            "runner_up_score": round(runner_up_candidate["score"], 4),
+            "confidence_gap": round(margin, 4),
             "detection_method": detection_method,
-            "message": "Flagged for human review"
         }
+
+    # Uncertain evidence is retained rather than overwritten.
+    for fact in facts:
+        fact.status = "contested"
+        fact.conflict_id = conflict.conflict_id
+
+    conflict.status = "flagged"
+    conflict.resolution_type = "human_review"
+    conflict.resolution_reason = (
+        f"V2 contested: winner score {winner_candidate['score']:.3f} "
+        f"(required >= {MIN_WINNER_SCORE:.2f}), runner-up "
+        f"{runner_up_candidate['score']:.3f}, margin {margin:.3f} "
+        f"(required >= {MIN_WINNER_MARGIN:.2f}). Human review required."
+    )
+
+    db.add(AuditLog(
+        event_type="conflict_detected",
+        fact_id=winner_fact.fact_id,
+        agent_id=winner_fact.agent_id,
+        description=(
+            f"V2 contested {fact_type}: "
+            f"'{winner_candidate['value']}' ({winner_candidate['score']:.3f}) "
+            f"vs '{runner_up_candidate['value']}' "
+            f"({runner_up_candidate['score']:.3f}); "
+            f"margin {margin:.3f}. Human review required."
+        ),
+    ))
+
+    return {
+        "conflict_id": conflict.conflict_id,
+        "resolution": "contested",
+        "value_a": winner_candidate["value"],
+        "agent_a": winner_fact.agent_id,
+        "confidence_a": winner_candidate["score"],
+        "value_b": runner_up_candidate["value"],
+        "agent_b": runner_up_fact.agent_id,
+        "confidence_b": runner_up_candidate["score"],
+        "confidence_gap": round(margin, 4),
+        "detection_method": detection_method,
+        "message": "Flagged for human review",
+    }
 
 
 # ── Request Models ─────────────────────────────────────────────
@@ -319,14 +488,21 @@ class MemoryWriteRequest(BaseModel):
     value: str
     agent_id: str
     extraction_type: Optional[str] = "direct"
-    confidence: Optional[float] = None  # None = auto-compute
+    # Kept for backward compatibility with the current agent pipeline.
+    # V2 does not trust caller-supplied confidence as the governed score.
+    confidence: Optional[float] = None
     source_file: Optional[str] = None
+    # Event/observation time. If omitted, V2 intentionally uses a neutral
+    # temporal penalty rather than pretending ingestion time is observation time.
+    observed_at: Optional[datetime] = None
+
 
 class ResolveRequest(BaseModel):
     conflict_id: str
     winning_fact_id: str
     resolved_by: str = "human"
     reason: Optional[str] = None
+
 
 class ActionCheckRequest(BaseModel):
     agent_id: str
@@ -335,6 +511,7 @@ class ActionCheckRequest(BaseModel):
     action_attempted: Optional[str] = None
     confidence_threshold: Optional[float] = 0.60
 
+
 # ── Endpoints ──────────────────────────────────────────────────
 
 @app.get("/memory/health")
@@ -342,7 +519,7 @@ def health_check():
     return {
         "status": "running",
         "service": "Multi-Agent Incident Memory Service",
-        "version": "3.0.0",
+        "version": "5.0.0",
         "features": [
             "SHA-256 hashing",
             "Qdrant semantic search",
@@ -362,18 +539,16 @@ def write_memory(
     db: Session = Depends(get_db)
 ):
     """
-    Store a new incident fact.
+    Store a fact and score the current candidate set with VeriMem V2.
 
-    Full flow:
-    1. Ensure agent record exists
-    2. Hash entity and value
-    3. Check for corroboration (same entity+type+value, different agent)
-    4. Compute confidence score
-    5. Write to PostgreSQL
-    6. Store embedding in Qdrant
-    7. Check for contradictions
-    8. Log event
+    Runtime invariants:
+    1. Caller-supplied confidence never bypasses governed scoring.
+    2. R(agent,fact_type) comes from expert prior + verified ContextTrust history.
+    3. Corroboration uses independent supporters through noisy-OR.
+    4. Newer values are evidence, not automatic truth.
+    5. Auto-resolution never trains trust; human-verified resolution does.
     """
+    fact_type = canonical_fact_type(request.fact_type)
     ensure_agent_exists(db, request.agent_id)
 
     entity_hash = hash_value(request.entity)
@@ -382,157 +557,123 @@ def write_memory(
     store_hash_mapping(db, request.entity, entity_hash)
     store_hash_mapping(db, request.value, value_hash)
 
-    # ── Check for corroboration ────────────────────────────────
-    # Same entity + same fact_type + same value + different agent
-    # = corroboration, not contradiction
-    existing_same_value = db.query(Fact).filter(
+    # Was the same candidate already supported before this write?
+    prior_same_value = db.query(Fact).filter(
         Fact.entity_hash == entity_hash,
-        Fact.fact_type == request.fact_type.lower().strip(),
-        Fact.raw_value == request.value,
-        Fact.agent_id != request.agent_id,
-        Fact.status == "active"
-    ).first()
+        Fact.fact_type == fact_type,
+        Fact.status.in_(["active", "contested"]),
+    ).all()
+    prior_same_value = any(
+        normalize_value(f.raw_value) == normalize_value(request.value)
+        and f.agent_id != request.agent_id
+        for f in prior_same_value
+    )
 
-    corroboration_count = 1
-    if existing_same_value:
-        # This is a corroboration — boost the existing fact's confidence
-        corroboration_count = (
-            existing_same_value.corroboration_count or 1
-        ) + 1
-        existing_same_value.corroboration_count = corroboration_count
-
-        # Recompute confidence with higher corroboration
-        agent_trust = get_agent_trust(db, existing_same_value.agent_id)
-        new_conf = compute_confidence(
-        agent_id=existing_same_value.agent_id,
-        fact_type=existing_same_value.fact_type,  # ADD THIS
-        extraction_type=existing_same_value.extraction_type,
-        corroboration_count=corroboration_count,
-        timestamp=existing_same_value.timestamp,
-        db_trust_score=agent_trust
-)
-        existing_same_value.confidence = new_conf
-
-        db.add(AuditLog(
-            event_type="corroboration",
-            fact_id=existing_same_value.fact_id,
-            agent_id=request.agent_id,
-            description=(
-                f"{request.agent_id} corroborated "
-                f"{request.fact_type}={request.value} "
-                f"for {request.entity}. "
-                f"Confidence updated to {new_conf:.3f}"
-            )
-        ))
-        db.commit()
-
-        print(f"\nCORROBORATION: {request.fact_type}={request.value} "
-              f"confirmed by {request.agent_id}. "
-              f"Confidence: {new_conf:.3f}")
-
-    # ── Compute confidence for new fact ───────────────────────
-    if request.confidence is not None:
-        # Agent provided explicit confidence — use it
-        computed_confidence = request.confidence
-    else:
-        # Auto-compute from formula
-        agent_trust = get_agent_trust(db, request.agent_id)
-        computed_confidence = compute_confidence(
-    agent_id=request.agent_id,
-    fact_type=request.fact_type.lower().strip(),
-    extraction_type=request.extraction_type or "direct",
-    corroboration_count=corroboration_count,
-    db_trust_score=agent_trust
-)
-
-    # ── Write fact to PostgreSQL ───────────────────────────────
-    # Add readable_by when creating the fact
-    # ── Write fact to PostgreSQL ───────────────────────────────
-    # Add readable_by when creating the fact
+    # Confidence starts as a placeholder. After db.flush(), the complete
+    # candidate set is scored by the pure V2 resolver and this value is replaced.
     fact = Fact(
         entity_hash=entity_hash,
-        fact_type=request.fact_type.lower().strip(),
+        fact_type=fact_type,
         value_hash=value_hash,
         raw_value=request.value,
         agent_id=request.agent_id,
-        confidence=computed_confidence,
+        confidence=0.0,
         status="active",
         extraction_type=request.extraction_type or "direct",
         source_file=request.source_file,
-        corroboration_count=corroboration_count,
-        readable_by=get_default_access(
-            request.fact_type.lower().strip()
-        )
+        corroboration_count=1,
+        readable_by=get_default_access(fact_type),
+        observed_at=request.observed_at,
     )
     db.add(fact)
+    db.flush()  # ensures fact_id exists before Qdrant/audit use
 
-    # Update agent write count
     agent = db.query(Agent).filter(
         Agent.agent_id == request.agent_id
     ).first()
     if agent:
         agent.total_writes = (agent.total_writes or 0) + 1
-        db.commit()
 
-    # ── Store embedding in Qdrant ──────────────────────────────
+    # Keep Qdrant populated for semantic retrieval without using it as a
+    # substitute for candidate-level contradiction reasoning.
     store_embedding(
         fact_id=fact.fact_id,
         entity_hash=entity_hash,
-        fact_type=request.fact_type.lower().strip(),
+        fact_type=fact_type,
         value=request.value,
-        agent_id=request.agent_id
+        agent_id=request.agent_id,
     )
 
-    # ── Check for contradictions ───────────────────────────────
-    # Skip if this was a corroboration
-    contradiction_result = None
-    if not existing_same_value:
-        contradiction_result = check_and_handle_contradiction(
-            db=db,
-            new_fact=fact,
-            entity_hash=entity_hash,
-            fact_type=request.fact_type.lower().strip(),
-            new_value=request.value
-        )
+    current_facts = db.query(Fact).filter(
+        Fact.entity_hash == entity_hash,
+        Fact.fact_type == fact_type,
+        Fact.status.in_(["active", "contested"]),
+    ).all()
 
-    # ── Log write event ────────────────────────────────────────
+    # Score all current candidates together. If there is more than one value,
+    # this also creates/updates the Conflict state while preserving the existing
+    # dashboard response schema.
+    contradiction_result = _resolve_current_candidates(
+        db=db,
+        facts=current_facts,
+        entity_hash=entity_hash,
+        fact_type=fact_type,
+    )
+
+    # If there is only one candidate, run V2 once to obtain its governed score.
+    # _resolve_current_candidates already applied scores before returning None.
+    computed_confidence = fact.confidence
+
+    if prior_same_value:
+        db.add(AuditLog(
+            event_type="corroboration",
+            fact_id=fact.fact_id,
+            agent_id=request.agent_id,
+            description=(
+                f"{request.agent_id} independently corroborated "
+                f"{fact_type}={request.value} for {request.entity}. "
+                f"V2 candidate confidence is {computed_confidence:.3f}."
+            ),
+        ))
+
     db.add(AuditLog(
         event_type="write",
         fact_id=fact.fact_id,
         agent_id=request.agent_id,
         description=(
-            f"{request.agent_id} wrote "
-            f"{request.fact_type}={request.value} "
-            f"for {request.entity} "
-            f"(confidence:{computed_confidence:.3f}) "
+            f"{request.agent_id} wrote {fact_type}={request.value} "
+            f"for {request.entity} (V2 confidence:{computed_confidence:.3f}) "
             f"from {request.source_file or 'text input'}"
-        )
+        ),
     ))
+
     db.commit()
+    db.refresh(fact)
 
     return {
-    "fact_id": fact.fact_id,
-    "entity_hash": entity_hash,
-    "fact_type": fact.fact_type,
-    "value_hash": value_hash,
-    "agent_id": request.agent_id,
-    "confidence": computed_confidence,
-    "status": fact.status,
-    "corroboration": existing_same_value is not None,
-    "contradiction_detected": contradiction_result is not None,
-    "contradiction": contradiction_result,
-    "message": (
-        "Corroboration — confidence updated"
-        if existing_same_value
-        else "Contradiction detected — flagged for human review"
-        if contradiction_result and
-           contradiction_result.get("resolution") == "contested"
-        else "Contradiction detected and auto-resolved"
-        if contradiction_result and
-           contradiction_result.get("resolution") == "auto_resolved"
-        else "Fact stored successfully"
-    )
-}
+        "fact_id": fact.fact_id,
+        "entity_hash": entity_hash,
+        "fact_type": fact.fact_type,
+        "value_hash": value_hash,
+        "agent_id": request.agent_id,
+        "confidence": fact.confidence,
+        "status": fact.status,
+        "corroboration": prior_same_value,
+        "contradiction_detected": contradiction_result is not None,
+        "contradiction": contradiction_result,
+        "message": (
+            "Corroboration — candidate confidence updated"
+            if prior_same_value and contradiction_result is None
+            else "Contradiction detected — flagged for human review"
+            if contradiction_result
+            and contradiction_result.get("resolution") == "contested"
+            else "Contradiction detected and auto-resolved"
+            if contradiction_result
+            and contradiction_result.get("resolution") == "auto_resolved"
+            else "Fact stored successfully"
+        ),
+    }
+
 
 @app.get("/memory/read")
 def read_memory(
@@ -549,7 +690,7 @@ def read_memory(
     )
     if fact_type:
         query = query.filter(
-            Fact.fact_type == fact_type.lower().strip()
+            Fact.fact_type == canonical_fact_type(fact_type)
         )
 
     facts = query.filter(
@@ -583,7 +724,8 @@ def read_memory(
             "source_file": fact.source_file,
             "corroboration_count": fact.corroboration_count,
             "readable_by": fact.readable_by,
-            "timestamp": fact.timestamp.isoformat()
+            "timestamp": fact.timestamp.isoformat(),
+            "observed_at": fact.observed_at.isoformat() if fact.observed_at else None
         }
 
         if fact.status == "contested":
@@ -680,7 +822,8 @@ def get_all_facts(db: Session = Depends(get_db)):
             "source_file": fact.source_file,
             "corroboration_count": fact.corroboration_count,
             "superseded_by": fact.superseded_by,
-            "timestamp": fact.timestamp.isoformat()
+            "timestamp": fact.timestamp.isoformat(),
+            "observed_at": fact.observed_at.isoformat() if fact.observed_at else None
         })
 
     return {"facts": results, "total": len(results)}
@@ -774,8 +917,12 @@ def resolve_conflict(
     db: Session = Depends(get_db)
 ):
     """
-    Human or Coordinator Agent resolves a contested conflict.
-    Called from the dashboard Review button or Coordinator Agent.
+    Resolve a contested conflict without changing the dashboard API.
+
+    A human-verified resolution updates R(agent,fact_type). Coordinator/system
+    resolutions may remain compatible with the existing pipeline, but they are
+    deliberately excluded from trust learning because they are not independent
+    verification labels.
     """
     conflict = db.query(Conflict).filter(
         Conflict.conflict_id == request.conflict_id
@@ -784,89 +931,139 @@ def resolve_conflict(
     if not conflict:
         raise HTTPException(
             status_code=404,
-            detail=f"Conflict not found: {request.conflict_id}"
+            detail=f"Conflict not found: {request.conflict_id}",
         )
 
-    if conflict.status not in ["flagged"]:
+    # Idempotency: repeated resolve requests must not double-count trust labels.
+    if conflict.status in ["human_resolved", "auto_resolved"]:
+        return {
+            "status": "already_resolved",
+            "conflict_id": conflict.conflict_id,
+            "winner": conflict.resolved_winner,
+        }
+
+    if conflict.status != "flagged":
         raise HTTPException(
             status_code=400,
-            detail=f"Conflict already resolved: {conflict.status}"
+            detail=f"Conflict already resolved: {conflict.status}",
         )
 
-    # Find winner and loser facts
-    if request.winning_fact_id == conflict.fact_id_a:
-        winner_id = conflict.fact_id_a
-        loser_id = conflict.fact_id_b
-    elif request.winning_fact_id == conflict.fact_id_b:
-        winner_id = conflict.fact_id_b
-        loser_id = conflict.fact_id_a
-    else:
+    if request.winning_fact_id not in {
+        conflict.fact_id_a,
+        conflict.fact_id_b,
+    }:
         raise HTTPException(
             status_code=400,
-            detail="winning_fact_id must be one of the two conflicting facts"
+            detail="winning_fact_id must be one of the two displayed conflict candidates",
         )
 
-    winner_fact = db.query(Fact).filter(
-        Fact.fact_id == winner_id
-    ).first()
-    loser_fact = db.query(Fact).filter(
-        Fact.fact_id == loser_id
+    selected_fact = db.query(Fact).filter(
+        Fact.fact_id == request.winning_fact_id
     ).first()
 
-    if not winner_fact or not loser_fact:
+    if not selected_fact:
         raise HTTPException(
             status_code=404,
-            detail="Could not find conflicting facts"
+            detail="Could not find selected winning fact",
         )
 
-    # Apply resolution
-    winner_fact.status = "active"
-    loser_fact.status = "superseded"
-    loser_fact.superseded_by = winner_fact.fact_id
+    winning_value = normalize_value(selected_fact.raw_value)
 
-    # Clear contested flags
-    winner_fact.conflict_id = None
-    loser_fact.conflict_id = None
+    # Preserve the original dashboard/API loser fields for the displayed pair.
+    display_loser_id = (
+        conflict.fact_id_b
+        if selected_fact.fact_id == conflict.fact_id_a
+        else conflict.fact_id_a
+    )
+    display_loser_fact = db.query(Fact).filter(
+        Fact.fact_id == display_loser_id
+    ).first()
+
+    # The resolver may have considered >2 observations even though the existing
+    # Conflict table/dashboard shows the top two candidates. Resolve every fact
+    # attached to this conflict consistently with the selected candidate value.
+    conflict_facts = db.query(Fact).filter(
+        Fact.entity_hash == conflict.entity_hash,
+        Fact.fact_type == conflict.fact_type,
+        Fact.conflict_id == conflict.conflict_id,
+    ).all()
+
+    if not conflict_facts:
+        # Backward compatibility for older pairwise conflicts.
+        conflict_facts = db.query(Fact).filter(
+            Fact.fact_id.in_([conflict.fact_id_a, conflict.fact_id_b])
+        ).all()
+
+    winner_facts = []
+    loser_facts = []
+    for fact in conflict_facts:
+        if normalize_value(fact.raw_value) == winning_value:
+            fact.status = "active"
+            fact.conflict_id = None
+            winner_facts.append(fact)
+        else:
+            fact.status = "superseded"
+            fact.superseded_by = selected_fact.fact_id
+            fact.conflict_id = None
+            loser_facts.append(fact)
 
     conflict.status = "human_resolved"
-    conflict.resolved_winner = winner_id
+    conflict.resolved_winner = selected_fact.fact_id
     conflict.resolution_type = "human_review"
     conflict.resolution_reason = (
-        request.reason or
-        f"Resolved by {request.resolved_by}"
+        request.reason or f"Resolved by {request.resolved_by}"
     )
     conflict.resolved_at = datetime.now(timezone.utc)
 
-    # Update agent trust scores
-    update_agent_trust_after_resolution(
-        winner_fact.agent_id,
-        loser_fact.agent_id,
-        db
-    )
+    # Verified-outcome learning: one correctness label per agent/fact context.
+    # Automatic or Coordinator/system decisions do NOT update contextual trust.
+    trust_updated = False
+    if is_verified_human(request.resolved_by):
+        by_agent = {}
+        for fact in sorted(
+            conflict_facts,
+            key=lambda f: (f.timestamp or datetime.min),
+        ):
+            by_agent[fact.agent_id] = fact
+
+        for agent_id, fact in by_agent.items():
+            correct = normalize_value(fact.raw_value) == winning_value
+            record_verified_outcome(
+                db=db,
+                agent_id=agent_id,
+                fact_type=conflict.fact_type,
+                correct=correct,
+            )
+        trust_updated = True
 
     db.add(AuditLog(
         event_type="human_resolved",
-        fact_id=winner_fact.fact_id,
+        fact_id=selected_fact.fact_id,
         agent_id=request.resolved_by,
         description=(
-            f"Human resolved {conflict.fact_type}: "
-            f"'{winner_fact.raw_value}' "
-            f"({winner_fact.agent_id}) chosen over "
-            f"'{loser_fact.raw_value}' "
-            f"({loser_fact.agent_id}). "
+            f"Resolved {conflict.fact_type}: '{selected_fact.raw_value}' selected. "
+            f"Verified contextual trust update: {trust_updated}. "
             f"Reason: {request.reason or 'Not specified'}"
-        )
+        ),
     ))
+
     db.commit()
 
     return {
         "conflict_id": conflict.conflict_id,
         "status": "human_resolved",
-        "winner_value": winner_fact.raw_value,
-        "winner_agent": winner_fact.agent_id,
-        "loser_value": loser_fact.raw_value,
-        "loser_agent": loser_fact.agent_id,
-        "message": "Conflict resolved successfully"
+        "winner_value": selected_fact.raw_value,
+        "winner_agent": selected_fact.agent_id,
+        "loser_value": (
+            display_loser_fact.raw_value if display_loser_fact else None
+        ),
+        "loser_agent": (
+            display_loser_fact.agent_id if display_loser_fact else None
+        ),
+        # Extra field for V2 multi-candidate conflicts; old frontend can ignore it.
+        "loser_values": [fact.raw_value for fact in loser_facts],
+        "trust_updated": trust_updated,
+        "message": "Conflict resolved successfully",
     }
 
 
@@ -876,19 +1073,20 @@ def check_action_gate(
     db: Session = Depends(get_db)
 ):
     """
-    Check if an agent can proceed with an action based on
-    the confidence and status of the fact it needs.
+    Check whether an agent may proceed with an action.
 
-    Returns allowed=True or allowed=False with reason.
-    Called by agents before taking any important action.
+    Blocked actions are written to both ActionGateLog (specialized gate log)
+    and AuditLog (full dashboard audit trail), so the frontend
+    event_type=action_blocked filter returns these events.
     """
     entity_hash = hash_value(request.entity)
+    fact_type = canonical_fact_type(request.fact_type)
 
     fact = db.query(Fact).filter(
-    Fact.entity_hash == entity_hash,
-    Fact.fact_type == request.fact_type.lower().strip(),
-    Fact.status.in_(["active", "contested"])
-).order_by(Fact.timestamp.desc()).first()
+        Fact.entity_hash == entity_hash,
+        Fact.fact_type == fact_type,
+        Fact.status.in_(["active", "contested"])
+    ).order_by(Fact.timestamp.desc()).first()
 
     if not fact:
         return {
@@ -900,16 +1098,29 @@ def check_action_gate(
     threshold = request.confidence_threshold or 0.60
 
     if fact.status == "contested":
-        # Log the block
+        blocked_reason = "Fact is contested — conflict unresolved"
+
         db.add(ActionGateLog(
             agent_id=request.agent_id,
             entity=request.entity,
-            fact_type=request.fact_type,
+            fact_type=fact_type,
             action_attempted=request.action_attempted,
-            blocked_reason="Fact is contested — conflict unresolved",
+            blocked_reason=blocked_reason,
             confidence_at_block=fact.confidence,
             conflict_id=fact.conflict_id
         ))
+
+        db.add(AuditLog(
+            event_type="action_blocked",
+            fact_id=fact.fact_id,
+            agent_id=request.agent_id,
+            description=(
+                f"Action blocked for {request.entity} / {fact_type}: "
+                f"fact is contested. Attempted action: "
+                f"{request.action_attempted or 'unspecified'}"
+            )
+        ))
+
         db.commit()
 
         return {
@@ -922,25 +1133,36 @@ def check_action_gate(
         }
 
     if fact.confidence < threshold:
+        blocked_reason = (
+            f"Confidence {fact.confidence:.3f} below threshold {threshold:.3f}"
+        )
+
         db.add(ActionGateLog(
             agent_id=request.agent_id,
             entity=request.entity,
-            fact_type=request.fact_type,
+            fact_type=fact_type,
             action_attempted=request.action_attempted,
-            blocked_reason=(
-                f"Confidence {fact.confidence:.3f} "
-                f"below threshold {threshold}"
-            ),
+            blocked_reason=blocked_reason,
             confidence_at_block=fact.confidence
         ))
+
+        db.add(AuditLog(
+            event_type="action_blocked",
+            fact_id=fact.fact_id,
+            agent_id=request.agent_id,
+            description=(
+                f"Action blocked for {request.entity} / {fact_type}: "
+                f"confidence {fact.confidence:.3f} below required threshold "
+                f"{threshold:.3f}. Attempted action: "
+                f"{request.action_attempted or 'unspecified'}"
+            )
+        ))
+
         db.commit()
 
         return {
             "allowed": False,
-            "reason": (
-                f"Confidence {fact.confidence:.3f} "
-                f"below required threshold {threshold}"
-            ),
+            "reason": blocked_reason,
             "fact_value": fact.raw_value,
             "confidence": fact.confidence,
             "status": fact.status,
@@ -981,53 +1203,107 @@ def get_audit_log(
     entity: Optional[str] = None,
     agent_id: Optional[str] = None,
     event_type: Optional[str] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
     limit: int = 100,
     db: Session = Depends(get_db)
 ):
     """
-    Full audit trail with optional filters.
-    
-    event_type options:
-      write, corroboration, conflict_detected,
-      auto_resolved, human_resolved, action_blocked
-    
+    Return the full audit trail with optional dashboard filters.
+
+    Supported filters:
+      - entity
+      - agent_id
+      - event_type
+      - date_from (inclusive)
+      - date_to (inclusive)
+
+    Results are always ordered newest first.
+
     Examples:
       GET /memory/audit
       GET /memory/audit?agent_id=billing_agent
       GET /memory/audit?event_type=conflict_detected
-      GET /memory/audit?agent_id=intake_agent&limit=20
+      GET /memory/audit?entity=INC0000001
+      GET /memory/audit?date_from=2026-09-20&date_to=2026-09-22
     """
-    query = db.query(AuditLog).order_by(
-        AuditLog.timestamp.desc()
-    )
+    # Keep dashboard/API requests bounded.
+    limit = max(1, min(limit, 500))
+
+    if date_from and date_to and date_from > date_to:
+        raise HTTPException(
+            status_code=400,
+            detail="date_from cannot be after date_to"
+        )
+
+    query = db.query(AuditLog)
 
     if agent_id:
-        query = query.filter(AuditLog.agent_id == agent_id)
+        query = query.filter(
+            AuditLog.agent_id == agent_id.strip()
+        )
 
     if event_type:
-        query = query.filter(AuditLog.event_type == event_type)
+        query = query.filter(
+            AuditLog.event_type == event_type.strip().lower()
+        )
 
-    # Entity filter requires joining through facts
-    # since audit log stores fact_id not entity directly
+    # AuditLog stores fact_id, not entity. Resolve the incident to its fact IDs.
     if entity:
         entity_hash = hash_value(entity)
-        # Get all fact_ids for this entity
         fact_ids = [
-            f.fact_id for f in db.query(Fact).filter(
+            fact.fact_id
+            for fact in db.query(Fact).filter(
                 Fact.entity_hash == entity_hash
             ).all()
         ]
-        if fact_ids:
-            query = query.filter(
-                AuditLog.fact_id.in_(fact_ids)
-            )
-        else:
-            return {"logs": [], "total": 0, "filters": {
-                "entity": entity, "agent_id": agent_id,
-                "event_type": event_type
-            }}
 
-    logs = query.limit(limit).all()
+        if not fact_ids:
+            return {
+                "logs": [],
+                "total": 0,
+                "filters": {
+                    "entity": entity,
+                    "agent_id": agent_id,
+                    "event_type": event_type,
+                    "date_from": date_from.isoformat() if date_from else None,
+                    "date_to": date_to.isoformat() if date_to else None
+                }
+            }
+
+        query = query.filter(
+            AuditLog.fact_id.in_(fact_ids)
+        )
+
+    # Inclusive lower date boundary: YYYY-MM-DD 00:00:00 UTC.
+    if date_from:
+        start_datetime = datetime.combine(
+            date_from,
+            time.min,
+            tzinfo=timezone.utc
+        )
+        query = query.filter(
+            AuditLog.timestamp >= start_datetime
+        )
+
+    # Inclusive upper calendar date is implemented as an exclusive boundary at
+    # midnight of the following day. This includes the whole selected date.
+    if date_to:
+        end_datetime = datetime.combine(
+            date_to + timedelta(days=1),
+            time.min,
+            tzinfo=timezone.utc
+        )
+        query = query.filter(
+            AuditLog.timestamp < end_datetime
+        )
+
+    logs = (
+        query
+        .order_by(AuditLog.timestamp.desc())
+        .limit(limit)
+        .all()
+    )
 
     return {
         "logs": [
@@ -1037,7 +1313,10 @@ def get_audit_log(
                 "fact_id": log.fact_id,
                 "agent_id": log.agent_id,
                 "description": log.description,
-                "timestamp": log.timestamp.isoformat()
+                "timestamp": (
+                    log.timestamp.isoformat()
+                    if log.timestamp else None
+                )
             }
             for log in logs
         ],
@@ -1045,9 +1324,12 @@ def get_audit_log(
         "filters": {
             "entity": entity,
             "agent_id": agent_id,
-            "event_type": event_type
+            "event_type": event_type,
+            "date_from": date_from.isoformat() if date_from else None,
+            "date_to": date_to.isoformat() if date_to else None
         }
     }
+
 
 @app.get("/memory/action_gate_log")
 def get_action_gate_log(db: Session = Depends(get_db)):
@@ -1082,7 +1364,6 @@ def get_resolution_feed(
     Agents can poll this before acting to check if any
     facts they plan to use were recently updated.
     """
-    from datetime import timedelta
     cutoff = datetime.now(timezone.utc) - timedelta(
         seconds=since_seconds
     )
@@ -1129,6 +1410,7 @@ def reset_memory(db: Session = Depends(get_db)):
 
     db.query(ActionGateLog).delete()
     db.query(AuditLog).delete()
+    db.query(ContextTrust).delete()
     db.query(Conflict).delete()
     db.query(Fact).delete()
     db.query(Agent).delete()

@@ -1,0 +1,281 @@
+{
+  "stage": "stage4_final_locked_test",
+  "test_used_for_parameter_selection": false,
+  "configuration_frozen_before_test": true,
+  "test_set": {
+    "path": "C:\\Users\\desai\\Downloads\\MemorySystem\\multi-agent-memory-system\\dataset\\splits\\test_scenarios_LOCKED.json",
+    "sha256": "62455542367c79f02323576a874df8e6835d6e3e8af2d5f81d834fd1adbedb81",
+    "n_scenarios": 841,
+    "n_unique_incidents": 150,
+    "n_expected_contradictions": 196,
+    "n_expected_non_contradictions": 645
+  },
+  "frozen_config": {
+    "path": "C:\\Users\\desai\\Downloads\\MemorySystem\\multi-agent-memory-system\\memory_service\\results\\frozen_config.json",
+    "sha256": "3c45be03329a7ff71ff0c387192deafa9fb18bacc5a292a0329dc97873e57f5c",
+    "formula_name": "original_35",
+    "formula_weights": {
+      "source": 0.35,
+      "corroboration": 0.3,
+      "directness": 0.15,
+      "decay": 0.2
+    },
+    "source_authority_policy": "fixed_expert_priors",
+    "db_trust_baseline": 0.7,
+    "auto_resolution_threshold": 0.23
+  },
+  "detection": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "accuracy": 1.0,
+    "tp": 196,
+    "fp": 0,
+    "fn": 0,
+    "tn": 645
+  },
+  "resolution": {
+    "expected_contradictions": 196,
+    "resolution_evaluable": 196,
+    "excluded_count": 0,
+    "exclusion_reasons": {},
+    "winner_reference_accuracy": 0.454082,
+    "winner_correct": 89,
+    "winner_total": 196,
+    "frozen_threshold": 0.23,
+    "auto_count": 49,
+    "correct_auto": 30,
+    "wrong_auto": 19,
+    "auto_resolution_coverage": 0.25,
+    "auto_resolution_accuracy": 0.612245,
+    "selective_error": 0.387755,
+    "contested_count": 147,
+    "contested_rate": 0.75,
+    "risk_coverage": {
+      "n": 196,
+      "full_coverage_accuracy": 0.454082,
+      "full_coverage_error": 0.545918,
+      "aurc": 0.483992,
+      "oracle_aurc": 0.187427,
+      "excess_aurc": 0.296565
+    }
+  },
+  "confidence_intervals_95": {
+    "detection_precision": {
+      "method": "incident-cluster nonparametric bootstrap percentile interval",
+      "seed": 42,
+      "repetitions": 2000,
+      "n_incidents": 150,
+      "lower_95": 1.0,
+      "upper_95": 1.0
+    },
+    "detection_recall": {
+      "method": "incident-cluster nonparametric bootstrap percentile interval",
+      "seed": 42,
+      "repetitions": 2000,
+      "n_incidents": 150,
+      "lower_95": 1.0,
+      "upper_95": 1.0
+    },
+    "detection_f1": {
+      "method": "incident-cluster nonparametric bootstrap percentile interval",
+      "seed": 42,
+      "repetitions": 2000,
+      "n_incidents": 150,
+      "lower_95": 1.0,
+      "upper_95": 1.0
+    },
+    "winner_reference_accuracy": {
+      "method": "incident-cluster nonparametric bootstrap percentile interval",
+      "seed": 42,
+      "repetitions": 2000,
+      "n_incidents": 150,
+      "lower_95": 0.388348,
+      "upper_95": 0.517077
+    },
+    "auto_resolution_coverage": {
+      "method": "incident-cluster nonparametric bootstrap percentile interval",
+      "seed": 42,
+      "repetitions": 2000,
+      "n_incidents": 150,
+      "lower_95": 0.187492,
+      "upper_95": 0.316598
+    },
+    "auto_resolution_accuracy": {
+      "method": "incident-cluster nonparametric bootstrap percentile interval",
+      "seed": 42,
+      "repetitions": 2000,
+      "n_incidents": 150,
+      "lower_95": 0.469388,
+      "upper_95": 0.744198
+    }
+  },
+  "breakdown_by_fact_type": {
+    "assignment_group": {
+      "n_scenarios": 139,
+      "detection": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "accuracy": 1.0,
+        "tp": 61,
+        "fp": 0,
+        "fn": 0,
+        "tn": 78
+      },
+      "resolution_evaluable": 61,
+      "winner_reference_accuracy": 0.836066
+    },
+    "category": {
+      "n_scenarios": 149,
+      "detection": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "accuracy": 1.0,
+        "tp": 13,
+        "fp": 0,
+        "fn": 0,
+        "tn": 136
+      },
+      "resolution_evaluable": 13,
+      "winner_reference_accuracy": 0.692308
+    },
+    "impact": {
+      "n_scenarios": 150,
+      "detection": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "accuracy": 1.0,
+        "tp": 6,
+        "fp": 0,
+        "fn": 0,
+        "tn": 144
+      },
+      "resolution_evaluable": 6,
+      "winner_reference_accuracy": 1.0
+    },
+    "priority": {
+      "n_scenarios": 150,
+      "detection": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "accuracy": 1.0,
+        "tp": 7,
+        "fp": 0,
+        "fn": 0,
+        "tn": 143
+      },
+      "resolution_evaluable": 7,
+      "winner_reference_accuracy": 0.857143
+    },
+    "state": {
+      "n_scenarios": 104,
+      "detection": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "accuracy": 1.0,
+        "tp": 104,
+        "fp": 0,
+        "fn": 0,
+        "tn": 0
+      },
+      "resolution_evaluable": 104,
+      "winner_reference_accuracy": 0.115385
+    },
+    "urgency": {
+      "n_scenarios": 149,
+      "detection": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "accuracy": 1.0,
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "tn": 144
+      },
+      "resolution_evaluable": 5,
+      "winner_reference_accuracy": 1.0
+    }
+  },
+  "breakdown_by_source_combination": {
+    "billing_agent + delivery_agent + intake_agent": {
+      "n_scenarios": 793,
+      "detection": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "accuracy": 1.0,
+        "tp": 188,
+        "fp": 0,
+        "fn": 0,
+        "tn": 605
+      },
+      "resolution_evaluable": 188,
+      "winner_reference_accuracy": 0.430851
+    },
+    "delivery_agent + intake_agent": {
+      "n_scenarios": 48,
+      "detection": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "accuracy": 1.0,
+        "tp": 8,
+        "fp": 0,
+        "fn": 0,
+        "tn": 40
+      },
+      "resolution_evaluable": 8,
+      "winner_reference_accuracy": 1.0
+    }
+  },
+  "breakdown_by_provenance": {
+    "generated_temporal_views": {
+      "n_scenarios": 841,
+      "detection": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "accuracy": 1.0,
+        "tp": 196,
+        "fp": 0,
+        "fn": 0,
+        "tn": 645
+      },
+      "resolution_evaluable": 196,
+      "winner_reference_accuracy": 0.454082
+    },
+    "controlled_manual": {
+      "n_scenarios": 0,
+      "detection": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "accuracy": 0.0,
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 0
+      },
+      "resolution_evaluable": 0,
+      "winner_reference_accuracy": null
+    }
+  },
+  "error_analysis_summary": {
+    "n_failure_records": 107,
+    "failure_type_counts": {
+      "incorrect_top_ranked_value": 107,
+      "incorrect_auto_resolution": 19
+    }
+  },
+  "outputs": {
+    "predictions": "C:\\Users\\desai\\Downloads\\MemorySystem\\multi-agent-memory-system\\memory_service\\results\\stage4_test_predictions.json",
+    "error_analysis": "C:\\Users\\desai\\Downloads\\MemorySystem\\multi-agent-memory-system\\memory_service\\results\\stage4_error_analysis.json"
+  },
+  "method_note": "All parameters were loaded from the frozen DEV-selected Stage 3 configuration. No TEST-set tuning, threshold search, formula selection, or source-authority fitting was performed."
+}
