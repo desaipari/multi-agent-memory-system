@@ -1,0 +1,1 @@
+V2 resolver verification: 9/9 tests passed under Python 3.11.9 and pytest 9.1.1. Tests executed from memory_service so verimem_core resolves on the package path.

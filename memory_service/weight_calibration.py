@@ -1,747 +1,878 @@
 """
-Weight Calibration — Ablation Study and Threshold Sensitivity Analysis
-For: Trusted Shared Memory for Multi-Agent AI Systems
+VeriMem V2 threshold calibration.
+
+This file intentionally reuses the existing weight_calibration.py filename so
+we do not add another experiment script to the repository.
+
+CALIBRATION PROTOCOL (fixed before looking at CAL results)
+----------------------------------------------------------
+Fresh CAL seeds: 103-132 (30 seeds)
+Frozen resolver: learned R(agent, fact), prior strength m=5, noisy-OR
+Frozen confidence formula: 0.35S + 0.30Cr + 0.15D - 0.20T
+
+Threshold grid:
+  minimum winner score = 0.20 ... 0.50
+  minimum margin       = 0.05 ... 0.30
+
+Selection rule:
+  1. auto-resolution accuracy >= 90% on natural conflict CAL cases
+  2. ambiguous stress contest rate >= 95%
+  3. among qualifying pairs, choose highest auto-resolution coverage
+  4. exact metric ties use the more conservative (higher) thresholds
+
+TEST data is never accessed here.
 """
 
-import requests
 import json
-import os
+import math
+import random
+import statistics
 import sys
-import re
-
-BASE = "http://127.0.0.1:8000"
-
-CONFIGURATIONS = {
-    "uniform": {
-        "intake_agent":      {"default": 0.70},
-        "delivery_agent":    {"default": 0.70},
-        "billing_agent":     {"default": 0.70},
-        "coordinator_agent": {"default": 0.70}
-    },
-    "global_rank": {
-        "intake_agent":      {"default": 0.85},
-        "delivery_agent":    {"default": 0.75},
-        "billing_agent":     {"default": 0.45},
-        "coordinator_agent": {"default": 0.80}
-    },
-    "itsm_domain": {
-        "intake_agent": {
-            "priority": 0.88, "assignment_group": 0.83,
-            "category": 0.78, "opened_date": 0.95,
-            "state": 0.72, "urgency": 0.62,
-            "impact": 0.68, "resolved_by": 0.38, "default": 0.70
-        },
-        "delivery_agent": {
-            "state": 0.90, "urgency": 0.84, "impact": 0.80,
-            "priority": 0.70, "category": 0.63,
-            "assignment_group": 0.55, "opened_date": 0.58,
-            "resolved_by": 0.52, "default": 0.66
-        },
-        "billing_agent": {
-            "resolved_by": 0.90, "state": 0.80, "category": 0.60,
-            "assignment_group": 0.50, "impact": 0.52,
-            "urgency": 0.44, "priority": 0.38,
-            "opened_date": 0.32, "default": 0.50
-        },
-        "coordinator_agent": {"default": 0.80}
-    },
-    "itsm_domain_conservative": {
-        "intake_agent": {
-            "priority": 0.80, "assignment_group": 0.75,
-            "category": 0.70, "opened_date": 0.88,
-            "state": 0.65, "urgency": 0.58,
-            "impact": 0.62, "resolved_by": 0.42, "default": 0.65
-        },
-        "delivery_agent": {
-            "state": 0.82, "urgency": 0.78, "impact": 0.74,
-            "priority": 0.65, "category": 0.60,
-            "assignment_group": 0.52, "opened_date": 0.55,
-            "resolved_by": 0.50, "default": 0.62
-        },
-        "billing_agent": {
-            "resolved_by": 0.82, "state": 0.72, "category": 0.58,
-            "assignment_group": 0.48, "impact": 0.50,
-            "urgency": 0.42, "priority": 0.42,
-            "opened_date": 0.38, "default": 0.52
-        },
-        "coordinator_agent": {"default": 0.78}
-    }
-}
-
-AGENT_EXTRACTION_TYPE = {
-    "intake_agent":      "direct",
-    "delivery_agent":    "direct",
-    "billing_agent":     "inferred",
-    "coordinator_agent": "direct"
-}
+from pathlib import Path
 
 
-def compute_confidence_local(agent_id, fact_type,
-                              extraction_type, config):
-    agent_weights = config.get(agent_id, {})
-    domain_authority = agent_weights.get(
-        fact_type, agent_weights.get("default", 0.50)
+ROOT = Path(__file__).resolve().parents[1]
+MEMORY_DIR = ROOT / "memory_service"
+DATASET_DIR = ROOT / "dataset"
+
+# Allow this existing script to import both sibling experiment modules.
+sys.path.insert(0, str(MEMORY_DIR))
+sys.path.insert(0, str(DATASET_DIR))
+
+import generate_v2_review_benchmark as generator
+import stage3_v2_review_aligned as stage3
+from verimem_core.resolver import resolve
+
+
+# -------------------------------------------------------------------
+# FROZEN V2 SETTINGS
+# -------------------------------------------------------------------
+
+CAL_SEEDS = list(range(103, 133))
+REGIMES = ["aligned", "mixed", "shifted"]
+
+PRIOR_STRENGTH = 5.0
+CORROBORATION_METHOD = "noisy_or"
+
+WINNER_SCORE_THRESHOLDS = [
+    0.20,
+    0.25,
+    0.30,
+    0.35,
+    0.40,
+    0.45,
+    0.50,
+]
+
+MARGIN_THRESHOLDS = [
+    0.05,
+    0.10,
+    0.15,
+    0.20,
+    0.25,
+    0.30,
+]
+
+MIN_AUTO_RESOLUTION_ACCURACY = 0.90
+MIN_AMBIGUOUS_CONTEST_RATE = 0.95
+
+OUTPUT_PATH = MEMORY_DIR / "threshold_sensitivity.json"
+
+
+# -------------------------------------------------------------------
+# HELPERS
+# -------------------------------------------------------------------
+
+def wilson_interval(successes, total, z=1.96):
+    if total == 0:
+        return None, None
+
+    p = successes / total
+    z2 = z * z
+    denominator = 1.0 + z2 / total
+
+    centre = (
+        p
+        + z2 / (2.0 * total)
+    ) / denominator
+
+    adjustment = (
+        z
+        * math.sqrt(
+            p * (1.0 - p) / total
+            + z2 / (4.0 * total * total)
+        )
+        / denominator
     )
-    directness = 0.90 if extraction_type == "direct" else 0.45
-    raw = (
-        0.50 * domain_authority +   # higher domain weight
-        0.20 * 0.20 +               # corroboration
-        0.15 * directness -
-        0.15 * 0.02                 # decay
-    )
-    return round(max(0.10, min(0.99, raw)), 4)
 
-
-def get_domain_weight(agent_id, fact_type, config):
-    """Get just the domain weight for an agent+fact_type."""
-    agent_weights = config.get(agent_id, {})
-    return agent_weights.get(
-        fact_type,
-        agent_weights.get("default", 0.50)
+    return (
+        centre - adjustment,
+        centre + adjustment,
     )
 
 
-def get_extraction_type(turn):
-    """Get extraction type from turn, falling back to agent-based default."""
-    et = turn.get("extraction_type")
-    if et and et in ("direct", "inferred"):
-        return et
-    agent = turn.get("agent", "intake_agent")
-    return AGENT_EXTRACTION_TYPE.get(agent, "direct")
-
-
-def get_turn_value(turn, scenario_fact_type):
-    """Extract value and fact_type from turn."""
-    fact_type = (
-        turn.get("fact_type") or
-        turn.get("expected_fact", {}).get("fact_type") or
-        scenario_fact_type or ""
-    ).lower().strip()
-
-    value = (
-        turn.get("value") or
-        turn.get("expected_fact", {}).get("value") or ""
-    ).strip().lower()
-
-    return fact_type, value
-
-
-def find_conflict(scenario, config):
-    scenario_fact_type = scenario.get("fact_type", "")
-    turns = scenario.get("turns", [])
-
-    facts = []
-    for turn in turns:
-        ft, value = get_turn_value(turn, scenario_fact_type)
-        if not ft or not value:
-            continue
-        agent = turn.get("agent", "intake_agent")
-        extraction = get_extraction_type(turn)
-        conf = compute_confidence_local(agent, ft, extraction, config)
-        domain_w = get_domain_weight(agent, ft, config)
-        facts.append({
-            "fact_type": ft,
-            "value": value,
-            "agent": agent,
-            "extraction": extraction,
-            "confidence": conf,
-            "domain_weight": domain_w
-        })
-
-    conflicts = []
-    for i in range(len(facts)):
-        for j in range(i + 1, len(facts)):
-            a, b = facts[i], facts[j]
-            if (a["fact_type"] == b["fact_type"] and
-                    a["value"] != b["value"] and
-                    a["agent"] != b["agent"]):
-
-                conf_gap = abs(a["confidence"] - b["confidence"])
-                domain_gap = abs(
-                    a["domain_weight"] - b["domain_weight"]
-                )
-
-                # Winner: higher confidence
-                # Tiebreak: higher domain weight
-                # Tiebreak 2: higher extraction directness
-                def score(f):
-                    ext_score = 1.0 if f["extraction"] == "direct" else 0.0
-                    return (f["confidence"], f["domain_weight"], ext_score)
-
-                if score(a) >= score(b):
-                    winner, loser = a, b
-                else:
-                    winner, loser = b, a
-
-                conflicts.append({
-                    "gap": conf_gap,
-                    "domain_gap": domain_gap,
-                    "winner": winner,
-                    "loser": loser
-                })
-
-    if not conflicts:
-        return None
-    return max(conflicts, key=lambda x: (x["gap"], x["domain_gap"]))
-
-
-def normalize(s):
-    if not s:
-        return ""
-    s = str(s).lower().strip()
-    # Remove all whitespace, dashes, underscores
-    s = re.sub(r'[\s\-_]+', '', s)
-    # Remove trailing dots
-    s = s.rstrip('.')
-    return s
-
-def resolution_correct(conflict, ground_truth):
-    correct_raw = ground_truth.get("correct_resolution", "")
-    if not correct_raw:
-        return False
-    correct_n = normalize(correct_raw)
-    winner_n = normalize(conflict["winner"]["value"])
-    return winner_n == correct_n
-
-
-def load_scenarios():
-    possible_dirs = [
-        os.path.join(
-            os.path.dirname(os.path.abspath(__file__)),
-            "..", "dataset", "scenarios"
-        ),
-        os.path.join("..", "dataset", "scenarios"),
+def mean_ci(values):
+    values = [
+        value
+        for value in values
+        if value is not None
     ]
-    scenarios_dir = None
-    for d in possible_dirs:
-        resolved = os.path.abspath(d)
-        if os.path.exists(resolved):
-            scenarios_dir = resolved
-            break
 
-    if not scenarios_dir:
-        print("Scenarios directory not found.")
-        return []
+    if not values:
+        return {
+            "n": 0,
+            "mean": None,
+            "sd": None,
+            "ci95_low": None,
+            "ci95_high": None,
+        }
 
-    print(f"Found scenarios at: {scenarios_dir}\n")
-    scenarios = []
-    files_found = 0
+    mean = statistics.mean(values)
 
-    for filename in sorted(os.listdir(scenarios_dir)):
-        if not filename.endswith(".json"):
-            continue
-        files_found += 1
-        with open(
-            os.path.join(scenarios_dir, filename),
-            encoding="utf-8"
-        ) as f:
-            data = json.load(f)
+    sd = (
+        statistics.stdev(values)
+        if len(values) > 1
+        else 0.0
+    )
 
-        category = data.get("category", "?")
-        category_name = data.get("category_name", "")
-        loaded = 0
-
-        for scenario in data.get("scenarios", []):
-            scenario["category"] = category
-            scenario["category_name"] = category_name
-            turns = scenario.get("turns", [])
-
-            # Extract entity
-            if "entity" not in scenario:
-                for turn in turns:
-                    entity = (
-                        turn.get("entity") or
-                        turn.get("expected_fact", {}).get("entity")
-                    )
-                    if not entity:
-                        m = re.search(r'INC\d+',
-                                      turn.get("input", ""))
-                        if m:
-                            entity = m.group(0)
-                    if entity:
-                        scenario["entity"] = entity
-                        break
-
-            # Extract fact_type
-            if "fact_type" not in scenario:
-                for turn in turns:
-                    ft = (
-                        turn.get("fact_type") or
-                        turn.get("expected_fact", {}).get("fact_type")
-                    )
-                    if ft:
-                        scenario["fact_type"] = ft.lower().strip()
-                        break
-
-            missing = [
-                f for f in
-                ["entity", "fact_type", "turns", "ground_truth"]
-                if f not in scenario
-            ]
-            if missing:
-                continue
-
-            scenarios.append(scenario)
-            loaded += 1
-
-        print(f"  {filename}: loaded {loaded}/"
-              f"{len(data.get('scenarios', []))}")
-
-    print(f"\nTotal: {len(scenarios)} valid scenarios "
-          f"from {files_found} files\n")
-    return scenarios
-
-
-def evaluate_config(config_name, config, scenarios, verbose=False):
-    tp = fp = fn = tn = 0
-    correct_res = 0
-    total_res = 0
-
-    for scenario in scenarios:
-        gt = scenario.get("ground_truth", {})
-        expected = gt.get("contradiction_expected", False)
-        correct_val_raw = gt.get("correct_resolution", "")
-        correct_val = normalize(correct_val_raw)
-
-        conflict = find_conflict(scenario, config)
-        found = conflict is not None
-
-        if expected and found:
-            tp += 1
-            # Count this scenario for resolution accuracy
-            # if it has ANY correct_resolution value
-            if correct_val:
-                total_res += 1
-                winner_val = normalize(conflict["winner"]["value"])
-                is_correct = resolution_correct(conflict, gt)
-
-                if verbose:
-                    print(f"    {scenario.get('scenario_id')}: "
-                          f"winner='{winner_val}' "
-                          f"correct='{correct_val}' "
-                          f"match={is_correct} "
-                          f"gap={conflict['gap']:.4f}")
-
-                if is_correct:
-                    correct_res += 1
-
-        elif not expected and found:
-            fp += 1
-        elif expected and not found:
-            fn += 1
-        else:
-            tn += 1
-
-    total = len(scenarios)
-    precision = tp / (tp + fp) if (tp + fp) > 0 else 0
-    recall = tp / (tp + fn) if (tp + fn) > 0 else 0
-    f1 = (2 * precision * recall / (precision + recall)
-          if (precision + recall) > 0 else 0)
-    res_acc = correct_res / total_res if total_res > 0 else 0
+    margin = (
+        1.96 * sd / math.sqrt(len(values))
+        if len(values) > 1
+        else 0.0
+    )
 
     return {
-        "config": config_name,
-        "precision": round(precision, 4),
-        "recall": round(recall, 4),
-        "accuracy": round((tp + tn) / total, 4),
-        "f1": round(f1, 4),
-        "resolution_accuracy": round(res_acc, 4),
-        "correct_res": correct_res,
-        "total_res": total_res,
-        "tp": tp, "fp": fp, "fn": fn, "tn": tn
+        "n": len(values),
+        "mean": mean,
+        "sd": sd,
+        "ci95_low": mean - margin,
+        "ci95_high": mean + margin,
     }
 
-def threshold_sensitivity(scenarios):
-    """
-    Test AUTO_RESOLVE_THRESHOLD values using itsm_domain config.
-    Uses SAME logic as evaluate_config for consistency.
-    """
-    config = CONFIGURATIONS["itsm_domain"]
-    # Finer granularity in the range where your gaps actually fall
-    thresholds = [0.03, 0.05, 0.07, 0.09, 0.10,
-              0.11, 0.13, 0.15, 0.17, 0.19, 0.20]
 
-    # Pre-compute all conflicts
-    all_conflicts = []
-    for scenario in scenarios:
-        gt = scenario.get("ground_truth", {})
-        if not gt.get("contradiction_expected"):
-            continue
-        c = find_conflict(scenario, config)
-        if c:
-            correct_val = gt.get("correct_resolution", "")
-            all_conflicts.append({
-                "gap": c["gap"],
-                "is_correct": resolution_correct(c, gt),
-                "correct_val": normalize(correct_val),
-                "winner_val": normalize(c["winner"]["value"]),
-                "scenario_id": scenario.get("scenario_id")
-            })
+def threshold_auto_resolves(record, score_threshold, margin_threshold):
+    # The resolver always contests exact score ties, regardless of thresholds.
+    if record["tie"]:
+        return False
 
-    print("\n" + "=" * 72)
-    print("THRESHOLD SENSITIVITY ANALYSIS (itsm_domain config)")
-    print(f"Total contradiction scenarios: {len(all_conflicts)}")
-    if all_conflicts:
-        gaps = [c["gap"] for c in all_conflicts]
-        correct_count = sum(
-            1 for c in all_conflicts if c["is_correct"]
+    if record["winner_score"] is None:
+        return False
+
+    if record["margin"] is None:
+        return False
+
+    return (
+        record["winner_score"] >= score_threshold
+        and record["margin"] >= margin_threshold
+    )
+
+
+def create_record(seed, regime, kind, scenario, provider):
+    """
+    Run the frozen V2 resolver once with thresholds disabled.
+
+    Thresholds only change auto_resolve vs contested; they do not change the
+    candidate scores or ranking. Therefore we calculate scores once and apply
+    all 42 threshold pairs to the stored winner score and margin. This makes
+    the calibration much faster without changing the decision logic.
+    """
+
+    result = resolve(
+        observations=stage3.to_observations(scenario),
+        provider=provider,
+        min_winner_score=-999.0,
+        min_margin=-999.0,
+        corroboration_method=CORROBORATION_METHOD,
+        prior_strength=PRIOR_STRENGTH,
+    )
+
+    winner = result.get("winner")
+
+    prediction = (
+        winner["value"]
+        if winner
+        else None
+    )
+
+    reference = scenario.get("reference_value")
+
+    winner_correct = (
+        None
+        if reference is None
+        else stage3.is_correct(
+            prediction,
+            reference,
         )
-        print(f"Gap range: {min(gaps):.4f} to {max(gaps):.4f} "
-              f"| Mean: {sum(gaps)/len(gaps):.4f}")
-        print(f"Correct resolutions regardless of threshold: "
-              f"{correct_count}/{len(all_conflicts)} = "
-              f"{correct_count/len(all_conflicts):.1%}")
-    print("=" * 72)
-    print(f"{'Threshold':>11} {'AutoRes':>9} {'Contested':>11} "
-          f"{'ResAcc':>8} {'Notes':>20}")
-    print("-" * 72)
+    )
 
-    results = []
-    best = None
+    return {
+        "seed": seed,
+        "regime": regime,
+        "kind": kind,
+        "winner_score": (
+            winner["score"]
+            if winner
+            else None
+        ),
+        "margin": result.get("margin"),
+        "tie": result.get("reason") == "tie",
+        "winner_correct": winner_correct,
+    }
 
-    for threshold in thresholds:
-        # Count how many conflicts exceed threshold
-        auto = [c for c in all_conflicts if c["gap"] >= threshold]
-        contested = [
-            c for c in all_conflicts if c["gap"] < threshold
+
+# -------------------------------------------------------------------
+# BUILD FRESH CAL RECORDS
+# -------------------------------------------------------------------
+
+def build_calibration_records():
+    records = []
+
+    total_natural = 0
+    total_stress = 0
+
+    for index, seed in enumerate(CAL_SEEDS, start=1):
+        print(
+            f"Preparing CAL seed {seed} "
+            f"({index}/{len(CAL_SEEDS)})"
+        )
+
+        # Same deterministic benchmark generator as Stage 3, but with a
+        # completely fresh seed range that was not used for DEV ablation.
+        rng = random.Random(seed)
+        regimes = generator.build_regimes()
+
+        reliability_data = (
+            generator.generate_reliability_benchmark(
+                rng,
+                regimes,
+            )
+        )
+
+        stress_data = (
+            generator.generate_stress_benchmark(
+                rng,
+                regimes,
+            )
+        )
+
+        for regime in REGIMES:
+            regime_data = reliability_data[regime]
+
+            adaptation = regime_data["adaptation"]
+            evaluation = regime_data["evaluation"]
+
+            # Frozen Stage-3 adaptive trust configuration.
+            provider = stage3.train_provider(
+                adaptation,
+                count=300,
+            )
+
+            total_natural += len(evaluation)
+
+            # Auto-resolution thresholds only apply when there are multiple
+            # competing values, so non-conflict natural cases are counted for
+            # dataset accounting but excluded from threshold selection.
+            for scenario in evaluation:
+                if not scenario["is_conflict"]:
+                    continue
+
+                records.append(
+                    create_record(
+                        seed=seed,
+                        regime=regime,
+                        kind="natural_conflict",
+                        scenario=scenario,
+                        provider=provider,
+                    )
+                )
+
+            regime_stress = stress_data[regime]
+            total_stress += len(regime_stress)
+
+            for scenario in regime_stress:
+                records.append(
+                    create_record(
+                        seed=seed,
+                        regime=regime,
+                        kind=scenario["category"],
+                        scenario=scenario,
+                        provider=provider,
+                    )
+                )
+
+    return records, total_natural, total_stress
+
+
+# -------------------------------------------------------------------
+# THRESHOLD METRICS
+# -------------------------------------------------------------------
+
+def evaluate_threshold(records, score_threshold, margin_threshold):
+    natural = [
+        row
+        for row in records
+        if row["kind"] == "natural_conflict"
+    ]
+
+    auto_natural = [
+        row
+        for row in natural
+        if threshold_auto_resolves(
+            row,
+            score_threshold,
+            margin_threshold,
+        )
+    ]
+
+    correct_auto = sum(
+        1
+        for row in auto_natural
+        if row["winner_correct"]
+    )
+
+    wrong_auto = (
+        len(auto_natural)
+        - correct_auto
+    )
+
+    auto_accuracy = (
+        correct_auto / len(auto_natural)
+        if auto_natural
+        else None
+    )
+
+    coverage = (
+        len(auto_natural) / len(natural)
+        if natural
+        else 0.0
+    )
+
+    contested_rate = 1.0 - coverage
+
+    # Ambiguous cases have no correct winner by construction. The desired
+    # behavior is abstention/contest rather than forced auto-resolution.
+    ambiguous = [
+        row
+        for row in records
+        if row["kind"] == "ambiguous"
+    ]
+
+    ambiguous_contested = sum(
+        1
+        for row in ambiguous
+        if not threshold_auto_resolves(
+            row,
+            score_threshold,
+            margin_threshold,
+        )
+    )
+
+    ambiguous_contest_rate = (
+        ambiguous_contested / len(ambiguous)
+        if ambiguous
+        else 0.0
+    )
+
+    # Targeted governance diagnostics. These are reported, but are not used
+    # to change the predeclared selection rule after seeing CAL results.
+    newer_wrong = [
+        row
+        for row in records
+        if row["kind"] == "newer_wrong"
+    ]
+
+    newer_wrong_wrong_auto = sum(
+        1
+        for row in newer_wrong
+        if (
+            threshold_auto_resolves(
+                row,
+                score_threshold,
+                margin_threshold,
+            )
+            and not row["winner_correct"]
+        )
+    )
+
+    newer_wrong_safe_rate = (
+        1.0
+        - newer_wrong_wrong_auto / len(newer_wrong)
+        if newer_wrong
+        else 0.0
+    )
+
+    newer_correct = [
+        row
+        for row in records
+        if row["kind"] == "newer_correct"
+    ]
+
+    newer_correct_correct_auto = sum(
+        1
+        for row in newer_correct
+        if (
+            threshold_auto_resolves(
+                row,
+                score_threshold,
+                margin_threshold,
+            )
+            and row["winner_correct"]
+        )
+    )
+
+    newer_correct_correct_auto_rate = (
+        newer_correct_correct_auto / len(newer_correct)
+        if newer_correct
+        else 0.0
+    )
+
+    ci_low, ci_high = wilson_interval(
+        correct_auto,
+        len(auto_natural),
+    )
+
+    return {
+        "winner_score_threshold": score_threshold,
+        "margin_threshold": margin_threshold,
+
+        "natural_conflicts": len(natural),
+        "auto_count": len(auto_natural),
+        "contested_count": (
+            len(natural) - len(auto_natural)
+        ),
+        "correct_auto": correct_auto,
+        "wrong_auto": wrong_auto,
+
+        "coverage": coverage,
+        "contested_rate": contested_rate,
+        "auto_resolution_accuracy": auto_accuracy,
+        "selective_error": (
+            wrong_auto / len(auto_natural)
+            if auto_natural
+            else None
+        ),
+        "auto_accuracy_wilson_95_low": ci_low,
+        "auto_accuracy_wilson_95_high": ci_high,
+
+        "ambiguous_total": len(ambiguous),
+        "ambiguous_contested": ambiguous_contested,
+        "ambiguous_contest_rate": ambiguous_contest_rate,
+
+        "newer_wrong_total": len(newer_wrong),
+        "newer_wrong_wrong_auto": newer_wrong_wrong_auto,
+        "newer_wrong_wrong_auto_rate": (
+            newer_wrong_wrong_auto / len(newer_wrong)
+            if newer_wrong
+            else 0.0
+        ),
+        "newer_wrong_safe_rate": newer_wrong_safe_rate,
+
+        "newer_correct_total": len(newer_correct),
+        "newer_correct_correct_auto": newer_correct_correct_auto,
+        "newer_correct_correct_auto_rate": (
+            newer_correct_correct_auto_rate
+        ),
+    }
+
+
+def qualifies(row):
+    accuracy = row["auto_resolution_accuracy"]
+
+    return (
+        accuracy is not None
+        and accuracy >= MIN_AUTO_RESOLUTION_ACCURACY
+        and row["ambiguous_contest_rate"]
+        >= MIN_AMBIGUOUS_CONTEST_RATE
+    )
+
+
+def select_threshold(rows):
+    qualifying = [
+        row
+        for row in rows
+        if qualifies(row)
+    ]
+
+    if not qualifying:
+        return None, []
+
+    # Primary objective: maximum coverage subject to the two safety floors.
+    # If all measured metrics tie, prefer the stricter thresholds.
+    selected = max(
+        qualifying,
+        key=lambda row: (
+            row["coverage"],
+            row["auto_resolution_accuracy"],
+            row["ambiguous_contest_rate"],
+            row["winner_score_threshold"],
+            row["margin_threshold"],
+        ),
+    )
+
+    return selected, qualifying
+
+
+# -------------------------------------------------------------------
+# SELECTED-THRESHOLD BREAKDOWNS
+# -------------------------------------------------------------------
+
+def filter_records(records, seed=None, regime=None):
+    output = records
+
+    if seed is not None:
+        output = [
+            row
+            for row in output
+            if row["seed"] == seed
         ]
 
-        auto_pct = len(auto) / len(all_conflicts) if all_conflicts else 0
-        contested_pct = 1.0 - auto_pct
+    if regime is not None:
+        output = [
+            row
+            for row in output
+            if row["regime"] == regime
+        ]
 
-        # Resolution accuracy: only auto-resolved conflicts get resolved
-        # Contested conflicts are flagged for human review
-        # ResAcc = fraction of auto-resolved that are correct
-        correct_auto = sum(1 for c in auto if c["is_correct"])
-        res_acc = correct_auto / len(auto) if len(auto) > 0 else 0
+    return output
 
-        # F1 stays same (detection unchanged by threshold)
-        # We track it for completeness
-        total_contradiction_scenarios = len(all_conflicts)
-        auto_count = len(auto)
-        contested_count = len(contested)
 
-        note = ""
-        if auto_pct == 0:
-            note = "all contested"
-        elif auto_pct == 1:
-            note = "all auto"
-        elif 0.4 <= auto_pct <= 0.7:
-            note = "good balance"
+def selected_breakdowns(records, selected):
+    score_threshold = selected[
+        "winner_score_threshold"
+    ]
 
-        r = {
-            "threshold": threshold,
-            "auto_count": len(auto),
-            "contested_count": len(contested),
-            "auto_resolve_pct": round(auto_pct, 4),
-            "contested_pct": round(contested_pct, 4),
-            "resolution_accuracy": round(res_acc, 4),
-            "correct_auto": correct_auto
-        }
-        results.append(r)
+    margin_threshold = selected[
+        "margin_threshold"
+    ]
 
-        print(f"  {threshold:>9.2f} {auto_pct:>8.1%} "
-              f"{contested_pct:>10.1%} {res_acc:>8.3f}  {note:>20}")
+    per_regime = {}
 
-        if best is None:
-            best = r
-        elif res_acc > best["resolution_accuracy"]:
-            best = r
-        elif (res_acc == best["resolution_accuracy"] and
-              abs(auto_pct - 0.50) < abs(
-                  best["auto_resolve_pct"] - 0.50)):
-            best = r
+    for regime in REGIMES:
+        per_regime[regime] = evaluate_threshold(
+            filter_records(
+                records,
+                regime=regime,
+            ),
+            score_threshold,
+            margin_threshold,
+        )
 
-    print("-" * 72)
+    seed_metrics = []
 
-    # Gap distribution bar chart
-    print("\nGap distribution across contradiction scenarios:")
-    for t in [0.03, 0.05, 0.07, 0.10, 0.13, 0.15, 0.20]:
-        above = sum(1 for c in all_conflicts if c["gap"] >= t)
-        total = len(all_conflicts)
-        bar = "=" * above + "-" * (total - above)
-        pct = above / total if total > 0 else 0
-        print(f"  >= {t:.2f}: {above:>2}/{total} "
-              f"[{bar}] {pct:.0%}")
+    for seed in CAL_SEEDS:
+        metric = evaluate_threshold(
+            filter_records(
+                records,
+                seed=seed,
+            ),
+            score_threshold,
+            margin_threshold,
+        )
 
-    # Show each conflict's gap and correctness
-    print("\nPer-scenario conflict details:")
-    print(f"  {'Scenario':<12} {'Gap':>8} {'Winner':>20} "
-          f"{'Correct':>8} {'Auto@0.07':>10}")
-    for c in sorted(all_conflicts, key=lambda x: x["gap"],
-                    reverse=True):
-        auto_at_7 = "YES" if c["gap"] >= 0.07 else "no"
-        print(f"  {c['scenario_id']:<12} {c['gap']:>8.4f} "
-              f"{c['winner_val']:>20} {str(c['is_correct']):>8} "
-              f"{auto_at_7:>10}")
+        metric["seed"] = seed
+        seed_metrics.append(metric)
 
-    if best:
-        print(f"\nOptimal threshold: {best['threshold']:.2f} "
-              f"(ResAcc={best['resolution_accuracy']:.3f}, "
-              f"Auto={best['auto_resolve_pct']:.1%})")
-
-    with open("threshold_sensitivity.json", "w") as f:
-        json.dump(results, f, indent=2)
-    print("Saved to threshold_sensitivity.json")
-
-    return best["threshold"] if best else 0.07
-
-FORMULA_CONFIGURATIONS = {
-    "equal_weights": {
-        "domain": 0.25, "corroboration": 0.25,
-        "directness": 0.25, "decay": 0.25
-    },
-    "original_35": {
-        "domain": 0.35, "corroboration": 0.30,
-        "directness": 0.15, "decay": 0.20
-    },
-    "domain_heavy_40": {
-        "domain": 0.40, "corroboration": 0.25,
-        "directness": 0.20, "decay": 0.15
-    },
-    "domain_heavy_50": {
-        "domain": 0.50, "corroboration": 0.20,
-        "directness": 0.15, "decay": 0.15
-    },
-    "domain_heavy_60": {
-        "domain": 0.60, "corroboration": 0.15,
-        "directness": 0.15, "decay": 0.10
+    seed_summary = {
+        "coverage": mean_ci([
+            row["coverage"]
+            for row in seed_metrics
+        ]),
+        "auto_resolution_accuracy": mean_ci([
+            row["auto_resolution_accuracy"]
+            for row in seed_metrics
+        ]),
+        "ambiguous_contest_rate": mean_ci([
+            row["ambiguous_contest_rate"]
+            for row in seed_metrics
+        ]),
+        "newer_wrong_safe_rate": mean_ci([
+            row["newer_wrong_safe_rate"]
+            for row in seed_metrics
+        ]),
+        "newer_correct_correct_auto_rate": mean_ci([
+            row["newer_correct_correct_auto_rate"]
+            for row in seed_metrics
+        ]),
     }
-}
 
-def compute_confidence_with_formula(agent_id, fact_type,
-                                     extraction_type,
-                                     formula_config,
-                                     trust_config):
-    agent_weights = trust_config.get(agent_id, {})
-    domain_authority = agent_weights.get(
-        fact_type, agent_weights.get("default", 0.50)
+    return (
+        per_regime,
+        seed_metrics,
+        seed_summary,
     )
-    directness = 0.90 if extraction_type == "direct" else 0.45
-    raw = (
-        formula_config["domain"] * domain_authority +
-        formula_config["corroboration"] * 0.20 +
-        formula_config["directness"] * directness -
-        formula_config["decay"] * 0.02
-    )
-    return round(max(0.10, min(0.99, raw)), 4)
 
-def run_formula_ablation(scenarios):
-    """
-    Test different formula weight distributions.
-    Uses itsm_domain SOURCE_CONDITIONAL_TRUST throughout.
-    Measures: max gap achieved, ResAcc at threshold 0.20.
-    """
-    trust_config = CONFIGURATIONS["itsm_domain"]
-    threshold = 0.20
 
-    print("\n" + "=" * 70)
-    print("FORMULA WEIGHT ABLATION")
-    print("(itsm_domain trust config, threshold=0.20)")
-    print("=" * 70)
-    print(f"{'Formula':<22} {'MaxGap':>8} {'MeanGap':>9} "
-          f"{'AutoRes':>9} {'ResAcc':>8}")
-    print("-" * 70)
+def format_percent(value):
+    if value is None:
+        return "N/A"
 
-    results = []
-    for formula_name, formula in FORMULA_CONFIGURATIONS.items():
-        gaps = []
-        correct_auto = 0
-        total_auto = 0
+    return f"{100.0 * value:.1f}%"
 
-        for scenario in scenarios:
-            gt = scenario.get("ground_truth", {})
-            if not gt.get("contradiction_expected"):
-                continue
 
-            fact_type = scenario.get("fact_type", "")
-            turns = scenario.get("turns", [])
-            facts = []
-
-            for turn in turns:
-                ft, value = get_turn_value(turn, fact_type)
-                if not ft or not value:
-                    continue
-                agent = turn.get("agent", "intake_agent")
-                extraction = get_extraction_type(turn)
-                conf = compute_confidence_with_formula(
-                    agent, ft, extraction,
-                    formula, trust_config
-                )
-                facts.append({
-                    "fact_type": ft, "value": value,
-                    "agent": agent, "confidence": conf
-                })
-
-            for i in range(len(facts)):
-                for j in range(i + 1, len(facts)):
-                    a, b = facts[i], facts[j]
-                    if (a["fact_type"] == b["fact_type"] and
-                            a["value"] != b["value"] and
-                            a["agent"] != b["agent"]):
-                        gap = abs(a["confidence"] - b["confidence"])
-                        gaps.append(gap)
-
-                        if gap >= threshold:
-                            total_auto += 1
-                            winner = a if a["confidence"] >= b["confidence"] else b
-                            correct_val = normalize(
-                                gt.get("correct_resolution", "")
-                            )
-                            if normalize(winner["value"]) == correct_val:
-                                correct_auto += 1
-                        break
-
-        max_gap = max(gaps) if gaps else 0
-        mean_gap = sum(gaps) / len(gaps) if gaps else 0
-        auto_pct = sum(1 for g in gaps if g >= threshold) / len(gaps) if gaps else 0
-        res_acc = correct_auto / total_auto if total_auto > 0 else 0
-
-        results.append({
-            "formula": formula_name,
-            "max_gap": round(max_gap, 4),
-            "mean_gap": round(mean_gap, 4),
-            "auto_pct": round(auto_pct, 4),
-            "res_acc": round(res_acc, 4),
-            "weights": formula
-        })
-
-        print(f"  {formula_name:<22} {max_gap:>8.4f} {mean_gap:>9.4f} "
-              f"{auto_pct:>8.1%} {res_acc:>8.3f}")
-
-    best = max(results, key=lambda x: (x["res_acc"], x["auto_pct"]))
-    print("-" * 70)
-    print(f"\nBest formula: {best['formula']}")
-    print(f"  domain={best['weights']['domain']} "
-          f"corroboration={best['weights']['corroboration']} "
-          f"directness={best['weights']['directness']} "
-          f"decay={best['weights']['decay']}")
-    print(f"  MaxGap={best['max_gap']:.4f} "
-          f"ResAcc={best['res_acc']:.3f} "
-          f"AutoRes={best['auto_pct']:.1%}")
-
-    with open("formula_ablation_results.json", "w") as f:
-        json.dump(results, f, indent=2)
-    print("Saved to formula_ablation_results.json")
-
-    return best
+# -------------------------------------------------------------------
+# MAIN
+# -------------------------------------------------------------------
 
 def main():
-    try:
-        r = requests.get(f"{BASE}/memory/health", timeout=5)
-        print(f"Server: {r.json().get('status', 'ok')}\n")
-    except Exception:
-        print(f"Cannot connect to {BASE}")
-        sys.exit(1)
+    print("=" * 92)
+    print("VERIMEM V2 THRESHOLD CALIBRATION")
+    print("=" * 92)
 
-    scenarios = load_scenarios()
-    if not scenarios:
-        print("No scenarios loaded.")
-        sys.exit(1)
-
-    # Debug: show first contradiction scenario with confidence breakdown
-    print("=== DEBUG: First contradiction scenario ===")
-    for s in scenarios:
-        gt = s.get("ground_truth", {})
-        if not gt.get("contradiction_expected"):
-            continue
-        print(f"Scenario: {s.get('scenario_id')} | "
-              f"entity={s.get('entity')} | "
-              f"fact_type={s.get('fact_type')}")
-        print(f"correct_resolution: "
-              f"'{gt.get('correct_resolution')}'")
-        turns = s.get("turns", [])
-        for i, t in enumerate(turns):
-            ft, val = get_turn_value(t, s.get("fact_type", ""))
-            agent = t.get("agent", "?")
-            ext = get_extraction_type(t)
-            print(f"\n  Turn {i+1}: agent={agent} | "
-                  f"fact_type={ft} | value={val} | "
-                  f"extraction={ext}")
-            for cfg_name, cfg in CONFIGURATIONS.items():
-                conf = compute_confidence_local(
-                    agent, ft, ext, cfg
-                )
-                dw = get_domain_weight(agent, ft, cfg)
-                print(f"    [{cfg_name:<28}] "
-                      f"domain_w={dw:.2f} conf={conf:.4f}")
-
-        # Show conflict results per config
-        print(f"\n  Conflict detection per config:")
-        for cfg_name, cfg in CONFIGURATIONS.items():
-            c = find_conflict(s, cfg)
-            if c:
-                correct = resolution_correct(c, gt)
-                print(f"    [{cfg_name:<28}] "
-                      f"gap={c['gap']:.4f} "
-                      f"winner={c['winner']['value']} "
-                      f"correct={correct}")
-            else:
-                print(f"    [{cfg_name:<28}] no conflict found")
-        break
-    print("=" * 45 + "\n")
-
-    # ── Ablation study ─────────────────────────────────────────
-    print("=" * 72)
-    print("ABLATION STUDY — Weight Configuration Comparison")
-    print("=" * 72)
-    print(f"{'Configuration':<30} {'Prec':>6} {'Recall':>8} "
-          f"{'F1':>8} {'ResAcc':>8} "
-          f"{'Correct':>8} {'Total':>7}")
-    print("-" * 72)
-
-    results = []
-    for cfg_name, cfg in CONFIGURATIONS.items():
-        m = evaluate_config(cfg_name, cfg, scenarios)
-        results.append(m)
-        print(f"  {cfg_name:<28} {m['precision']:>6.3f} "
-              f"{m['recall']:>8.3f} {m['f1']:>8.3f} "
-              f"{m['resolution_accuracy']:>8.3f} "
-              f"{m['correct_res']:>8} {m['total_res']:>7}")
-
-    print("=" * 72)
-    best = max(
-        results,
-        key=lambda x: (x["f1"], x["resolution_accuracy"])
+    print("Fresh CAL seeds: 103-132 (30 seeds)")
+    print("DEV seeds 73-102 are not reused.")
+    print("TEST is not accessed.")
+    print("Frozen resolver: learned m=5 + noisy-OR")
+    print(
+        "Frozen confidence formula: "
+        "0.35S + 0.30Cr + 0.15D - 0.20T"
     )
-    print(f"\nBest: {best['config']} "
-          f"(F1={best['f1']:.3f}, "
-          f"ResAcc={best['resolution_accuracy']:.3f})")
 
-    with open("calibration_results.json", "w") as f:
-        json.dump({
-            "ablation_results": results,
-            "selected_config": best["config"],
-            "selection_criterion":
-                "highest F1, then resolution_accuracy",
-            "dataset_size": len(scenarios)
-        }, f, indent=2)
-    print("Saved to calibration_results.json\n")
+    print("\nPredeclared selection rule:")
+    print("  1. Auto-resolution accuracy >= 90%")
+    print("  2. Ambiguous contest rate >= 95%")
+    print("  3. Choose highest coverage among qualifying pairs")
+    print("  4. Exact metric ties -> stricter thresholds")
 
-    # ── Threshold sensitivity ──────────────────────────────────
-    optimal = threshold_sensitivity(scenarios)
+    records, total_natural, total_stress = (
+        build_calibration_records()
+    )
 
-    print(f"\n{'='*72}")
-    print("FINAL RECOMMENDATIONS")
-    print(f"  Best weight config:   {best['config']}")
-    print(f"  Optimal threshold:    {optimal:.2f}")
-    print(f"\nUpdate confidence_scorer.py:")
-    print(f"  AUTO_RESOLVE_THRESHOLD = {optimal:.2f}")
-    if best["config"] == "itsm_domain":
-        print("  SOURCE_CONDITIONAL_TRUST: no change (already itsm_domain)")
+    natural_conflict_count = sum(
+        1
+        for row in records
+        if row["kind"] == "natural_conflict"
+    )
+
+    print("\n" + "=" * 92)
+    print("CAL DATASET")
+    print("=" * 92)
+    print(f"Natural CAL scenarios generated: {total_natural}")
+    print(f"Natural conflict cases used:     {natural_conflict_count}")
+    print(f"Stress CAL scenarios:            {total_stress}")
+    print(f"Total fresh CAL scenarios:       {total_natural + total_stress}")
+
+    rows = []
+
+    for score_threshold in WINNER_SCORE_THRESHOLDS:
+        for margin_threshold in MARGIN_THRESHOLDS:
+            rows.append(
+                evaluate_threshold(
+                    records,
+                    score_threshold,
+                    margin_threshold,
+                )
+            )
+
+    print("\n" + "=" * 110)
+    print("THRESHOLD GRID")
+    print("=" * 110)
+    print(
+        f"{'Score':>6} "
+        f"{'Margin':>7} "
+        f"{'AutoN':>8} "
+        f"{'Coverage':>10} "
+        f"{'AutoAcc':>10} "
+        f"{'SelErr':>9} "
+        f"{'AmbContest':>11} "
+        f"{'WrongNewSafe':>12} "
+        f"{'NewCorrectAuto':>14}"
+    )
+    print("-" * 110)
+
+    for row in rows:
+        print(
+            f"{row['winner_score_threshold']:>6.2f} "
+            f"{row['margin_threshold']:>7.2f} "
+            f"{row['auto_count']:>8} "
+            f"{format_percent(row['coverage']):>10} "
+            f"{format_percent(row['auto_resolution_accuracy']):>10} "
+            f"{format_percent(row['selective_error']):>9} "
+            f"{format_percent(row['ambiguous_contest_rate']):>11} "
+            f"{format_percent(row['newer_wrong_safe_rate']):>12} "
+            f"{format_percent(row['newer_correct_correct_auto_rate']):>14}"
+        )
+
+    selected, qualifying = select_threshold(rows)
+
+    print("\n" + "=" * 92)
+    print("SELECTION")
+    print("=" * 92)
+    print(f"Qualifying threshold pairs: {len(qualifying)} / {len(rows)}")
+
+    if selected is None:
+        print("NO THRESHOLD PAIR MET THE PREDECLARED SAFETY RULE.")
+        print(
+            "Do not invent a fallback threshold. "
+            "Review the CAL results first."
+        )
+
+        output = {
+            "stage": "v2_calibration",
+            "cal_seeds": CAL_SEEDS,
+            "test_used": False,
+            "selected_threshold": None,
+            "selection_rule": {
+                "minimum_auto_resolution_accuracy": (
+                    MIN_AUTO_RESOLUTION_ACCURACY
+                ),
+                "minimum_ambiguous_contest_rate": (
+                    MIN_AMBIGUOUS_CONTEST_RATE
+                ),
+                "objective": (
+                    "maximize natural-conflict auto-resolution coverage"
+                ),
+            },
+            "dataset_counts": {
+                "natural_generated": total_natural,
+                "natural_conflicts": natural_conflict_count,
+                "stress": total_stress,
+                "total_generated": total_natural + total_stress,
+            },
+            "threshold_grid": rows,
+        }
+
     else:
-        print(f"  Consider updating SOURCE_CONDITIONAL_TRUST "
-              f"to {best['config']} weights")
-    print(f"{'='*72}")
+        print(
+            "Selected minimum winner score:",
+            f"{selected['winner_score_threshold']:.2f}",
+        )
+        print(
+            "Selected minimum margin:      ",
+            f"{selected['margin_threshold']:.2f}",
+        )
+        print(
+            "Natural conflict coverage:    ",
+            format_percent(selected["coverage"]),
+        )
+        print(
+            "Auto-resolution accuracy:     ",
+            format_percent(
+                selected["auto_resolution_accuracy"]
+            ),
+        )
+        print(
+            "Auto-accuracy Wilson 95% CI:  ",
+            f"[{format_percent(selected['auto_accuracy_wilson_95_low'])}, "
+            f"{format_percent(selected['auto_accuracy_wilson_95_high'])}]",
+        )
+        print(
+            "Selective error:              ",
+            format_percent(selected["selective_error"]),
+        )
+        print(
+            "Ambiguous contest rate:       ",
+            format_percent(
+                selected["ambiguous_contest_rate"]
+            ),
+        )
+        print(
+            "Newer-wrong safe rate:        ",
+            format_percent(
+                selected["newer_wrong_safe_rate"]
+            ),
+        )
+        print(
+            "Newer-correct correct-auto:   ",
+            format_percent(
+                selected[
+                    "newer_correct_correct_auto_rate"
+                ]
+            ),
+        )
+
+        (
+            per_regime,
+            seed_metrics,
+            seed_summary,
+        ) = selected_breakdowns(
+            records,
+            selected,
+        )
+
+        print("\nSelected-threshold regime breakdown:")
+
+        for regime in REGIMES:
+            row = per_regime[regime]
+            print(
+                f"  {regime:<8} "
+                f"coverage={format_percent(row['coverage'])}  "
+                f"auto_acc={format_percent(row['auto_resolution_accuracy'])}  "
+                f"amb_contest={format_percent(row['ambiguous_contest_rate'])}  "
+                f"wrong_new_safe={format_percent(row['newer_wrong_safe_rate'])}"
+            )
+
+        print("\n30-seed mean ± 95% CI:")
+
+        for name, summary in seed_summary.items():
+            print(
+                f"  {name:<34} "
+                f"{format_percent(summary['mean'])} "
+                f"[{format_percent(summary['ci95_low'])}, "
+                f"{format_percent(summary['ci95_high'])}]"
+            )
+
+        print("\nValues to place in main.py AFTER reviewing this output:")
+        print(
+            "V2_MIN_WINNER_SCORE =",
+            f"{selected['winner_score_threshold']:.2f}"
+        )
+        print(
+            "V2_MIN_MARGIN =",
+            f"{selected['margin_threshold']:.2f}"
+        )
+
+        output = {
+            "stage": "v2_calibration",
+            "cal_seeds": CAL_SEEDS,
+            "dev_seeds_reused": False,
+            "test_used": False,
+            "frozen_model": {
+                "prior_strength": PRIOR_STRENGTH,
+                "corroboration_method": CORROBORATION_METHOD,
+                "confidence_formula": (
+                    "0.35S + 0.30Cr + 0.15D - 0.20T"
+                ),
+            },
+            "selection_rule": {
+                "minimum_auto_resolution_accuracy": (
+                    MIN_AUTO_RESOLUTION_ACCURACY
+                ),
+                "minimum_ambiguous_contest_rate": (
+                    MIN_AMBIGUOUS_CONTEST_RATE
+                ),
+                "objective": (
+                    "maximize natural-conflict auto-resolution coverage"
+                ),
+                "tie_break": (
+                    "prefer stricter thresholds if measured metrics tie"
+                ),
+            },
+            "dataset_counts": {
+                "natural_generated": total_natural,
+                "natural_conflicts": natural_conflict_count,
+                "stress": total_stress,
+                "total_generated": total_natural + total_stress,
+            },
+            "selected_threshold": selected,
+            "selected_per_regime": per_regime,
+            "selected_seed_metrics": seed_metrics,
+            "selected_seed_summary": seed_summary,
+            "qualifying_pair_count": len(qualifying),
+            "threshold_grid": rows,
+        }
+
+    with OUTPUT_PATH.open(
+        "w",
+        encoding="utf-8",
+    ) as file:
+        json.dump(
+            output,
+            file,
+            indent=2,
+        )
+
+    print("\nSaved:", OUTPUT_PATH)
 
 
-    # First pass verbose to see resolution matching
-    print("=== VERBOSE RESOLUTION CHECK (uniform config) ===")
-    evaluate_config("uniform", CONFIGURATIONS["uniform"],
-                scenarios, verbose=True)
-    print("=== END VERBOSE ===\n")
-
-    print("\n--- Running formula weight ablation ---")
-    best_formula = run_formula_ablation(scenarios)
 if __name__ == "__main__":
     main()

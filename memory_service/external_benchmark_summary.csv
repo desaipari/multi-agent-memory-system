@@ -1,0 +1,10 @@
+system,metric,runs,mean,sd
+Mem0,Overall top-1 accuracy,5,0.6444444444444445,0.04969039949999529
+Mem0,Newer-correct accuracy,5,0.65,0.05590169943749474
+Mem0,Newer-wrong safety,5,0.64,0.08944271909999162
+Zep raw top-1,Overall accuracy,5,0.5,0.0
+Zep raw top-1,Newer-correct accuracy,5,0.5,0.0
+Zep raw top-1,Newer-wrong safety,5,0.5,0.0
+Zep current-valid,Overall accuracy,5,0.5555555555555556,0.0
+Zep current-valid,Newer-correct accuracy,5,1.0,0.0
+Zep current-valid,Newer-wrong safety,5,0.2,0.0

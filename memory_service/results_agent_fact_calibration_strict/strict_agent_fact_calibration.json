@@ -1,0 +1,308 @@
+{
+  "method": "Strict epistemic source-trust calibration",
+  "prior_strength": 5.0,
+  "excluded_categories": {
+    "category_D_legitimate_update.json": "temporal_update",
+    "category_F_stale_source.json": "temporal_staleness",
+    "category_I_no_contradiction.json": "no_independent_truth"
+  },
+  "usable_scenarios": 40,
+  "usable_observations": 80,
+  "skipped": {
+    "missing_or_ambiguous_truth": 3
+  },
+  "excluded": {
+    "temporal_update": 3,
+    "temporal_staleness": 3,
+    "no_independent_truth": 3
+  },
+  "cross_validation": {
+    "uniform": {
+      "n": 80,
+      "brier": 0.25,
+      "log_loss": 0.6931471805599456
+    },
+    "agent_only": {
+      "n": 80,
+      "brier": 0.22550447222631442,
+      "log_loss": 0.6634698728804398
+    },
+    "fact_only": {
+      "n": 80,
+      "brier": 0.25283241213151925,
+      "log_loss": 0.6989424451610254
+    },
+    "expert_prior": {
+      "n": 80,
+      "brier": 0.19274624999999995,
+      "log_loss": 0.5676190286562126
+    },
+    "agent_fact_posterior": {
+      "n": 80,
+      "brier": 0.16081607653651736,
+      "log_loss": 0.4920632480759809
+    }
+  },
+  "rows": [
+    {
+      "agent_id": "billing_agent",
+      "fact_type": "assignment_group",
+      "successes": 0,
+      "failures": 2,
+      "n": 2,
+      "raw_accuracy": 0.0,
+      "expert_prior": 0.5,
+      "posterior": 0.35714285714285715
+    },
+    {
+      "agent_id": "billing_agent",
+      "fact_type": "category",
+      "successes": 0,
+      "failures": 4,
+      "n": 4,
+      "raw_accuracy": 0.0,
+      "expert_prior": 0.6,
+      "posterior": 0.3333333333333333
+    },
+    {
+      "agent_id": "billing_agent",
+      "fact_type": "impact",
+      "successes": 0,
+      "failures": 3,
+      "n": 3,
+      "raw_accuracy": 0.0,
+      "expert_prior": 0.52,
+      "posterior": 0.325
+    },
+    {
+      "agent_id": "billing_agent",
+      "fact_type": "opened_date",
+      "successes": 0,
+      "failures": 2,
+      "n": 2,
+      "raw_accuracy": 0.0,
+      "expert_prior": 0.32,
+      "posterior": 0.2285714285714286
+    },
+    {
+      "agent_id": "billing_agent",
+      "fact_type": "priority",
+      "successes": 0,
+      "failures": 3,
+      "n": 3,
+      "raw_accuracy": 0.0,
+      "expert_prior": 0.38,
+      "posterior": 0.2375
+    },
+    {
+      "agent_id": "billing_agent",
+      "fact_type": "resolved_by",
+      "successes": 4,
+      "failures": 0,
+      "n": 4,
+      "raw_accuracy": 1.0,
+      "expert_prior": 0.9,
+      "posterior": 0.9444444444444444
+    },
+    {
+      "agent_id": "billing_agent",
+      "fact_type": "state",
+      "successes": 2,
+      "failures": 1,
+      "n": 3,
+      "raw_accuracy": 0.6666666666666666,
+      "expert_prior": 0.8,
+      "posterior": 0.75
+    },
+    {
+      "agent_id": "billing_agent",
+      "fact_type": "urgency",
+      "successes": 0,
+      "failures": 4,
+      "n": 4,
+      "raw_accuracy": 0.0,
+      "expert_prior": 0.44,
+      "posterior": 0.24444444444444446
+    },
+    {
+      "agent_id": "coordinator_agent",
+      "fact_type": "assignment_group",
+      "successes": 2,
+      "failures": 0,
+      "n": 2,
+      "raw_accuracy": 1.0,
+      "expert_prior": 0.8,
+      "posterior": 0.8571428571428571
+    },
+    {
+      "agent_id": "coordinator_agent",
+      "fact_type": "priority",
+      "successes": 1,
+      "failures": 0,
+      "n": 1,
+      "raw_accuracy": 1.0,
+      "expert_prior": 0.8,
+      "posterior": 0.8333333333333334
+    },
+    {
+      "agent_id": "delivery_agent",
+      "fact_type": "assignment_group",
+      "successes": 0,
+      "failures": 1,
+      "n": 1,
+      "raw_accuracy": 0.0,
+      "expert_prior": 0.55,
+      "posterior": 0.4583333333333333
+    },
+    {
+      "agent_id": "delivery_agent",
+      "fact_type": "category",
+      "successes": 4,
+      "failures": 0,
+      "n": 4,
+      "raw_accuracy": 1.0,
+      "expert_prior": 0.63,
+      "posterior": 0.7944444444444445
+    },
+    {
+      "agent_id": "delivery_agent",
+      "fact_type": "impact",
+      "successes": 3,
+      "failures": 0,
+      "n": 3,
+      "raw_accuracy": 1.0,
+      "expert_prior": 0.8,
+      "posterior": 0.875
+    },
+    {
+      "agent_id": "delivery_agent",
+      "fact_type": "opened_date",
+      "successes": 0,
+      "failures": 1,
+      "n": 1,
+      "raw_accuracy": 0.0,
+      "expert_prior": 0.58,
+      "posterior": 0.48333333333333334
+    },
+    {
+      "agent_id": "delivery_agent",
+      "fact_type": "priority",
+      "successes": 4,
+      "failures": 0,
+      "n": 4,
+      "raw_accuracy": 1.0,
+      "expert_prior": 0.7,
+      "posterior": 0.8333333333333334
+    },
+    {
+      "agent_id": "delivery_agent",
+      "fact_type": "resolved_by",
+      "successes": 0,
+      "failures": 2,
+      "n": 2,
+      "raw_accuracy": 0.0,
+      "expert_prior": 0.52,
+      "posterior": 0.37142857142857144
+    },
+    {
+      "agent_id": "delivery_agent",
+      "fact_type": "state",
+      "successes": 4,
+      "failures": 0,
+      "n": 4,
+      "raw_accuracy": 1.0,
+      "expert_prior": 0.9,
+      "posterior": 0.9444444444444444
+    },
+    {
+      "agent_id": "delivery_agent",
+      "fact_type": "urgency",
+      "successes": 4,
+      "failures": 0,
+      "n": 4,
+      "raw_accuracy": 1.0,
+      "expert_prior": 0.84,
+      "posterior": 0.911111111111111
+    },
+    {
+      "agent_id": "intake_agent",
+      "fact_type": "assignment_group",
+      "successes": 4,
+      "failures": 1,
+      "n": 5,
+      "raw_accuracy": 0.8,
+      "expert_prior": 0.83,
+      "posterior": 0.8149999999999998
+    },
+    {
+      "agent_id": "intake_agent",
+      "fact_type": "category",
+      "successes": 2,
+      "failures": 2,
+      "n": 4,
+      "raw_accuracy": 0.5,
+      "expert_prior": 0.78,
+      "posterior": 0.6555555555555556
+    },
+    {
+      "agent_id": "intake_agent",
+      "fact_type": "impact",
+      "successes": 1,
+      "failures": 1,
+      "n": 2,
+      "raw_accuracy": 0.5,
+      "expert_prior": 0.68,
+      "posterior": 0.6285714285714287
+    },
+    {
+      "agent_id": "intake_agent",
+      "fact_type": "opened_date",
+      "successes": 3,
+      "failures": 0,
+      "n": 3,
+      "raw_accuracy": 1.0,
+      "expert_prior": 0.95,
+      "posterior": 0.96875
+    },
+    {
+      "agent_id": "intake_agent",
+      "fact_type": "priority",
+      "successes": 3,
+      "failures": 3,
+      "n": 6,
+      "raw_accuracy": 0.5,
+      "expert_prior": 0.88,
+      "posterior": 0.6727272727272727
+    },
+    {
+      "agent_id": "intake_agent",
+      "fact_type": "resolved_by",
+      "successes": 0,
+      "failures": 2,
+      "n": 2,
+      "raw_accuracy": 0.0,
+      "expert_prior": 0.38,
+      "posterior": 0.2714285714285714
+    },
+    {
+      "agent_id": "intake_agent",
+      "fact_type": "state",
+      "successes": 1,
+      "failures": 4,
+      "n": 5,
+      "raw_accuracy": 0.2,
+      "expert_prior": 0.72,
+      "posterior": 0.45999999999999996
+    },
+    {
+      "agent_id": "intake_agent",
+      "fact_type": "urgency",
+      "successes": 1,
+      "failures": 1,
+      "n": 2,
+      "raw_accuracy": 0.5,
+      "expert_prior": 0.62,
+      "posterior": 0.5857142857142856
+    }
+  ]
+}

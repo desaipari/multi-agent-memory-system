@@ -1,0 +1,18 @@
+{
+  "version": "verimem_v2_review_aligned_dev",
+  "seed": 73,
+  "confidence_formula": "0.35 source + 0.30 corroboration + 0.15 directness - 0.20 time penalty",
+  "adaptation_labels_per_regime": 300,
+  "evaluation_cases_per_regime": 900,
+  "stress_cases_per_category_per_regime": 150,
+  "regime_definition": {
+    "aligned": "True source authority matches expert priors.",
+    "mixed": "Source authority is reassigned for selected fact types.",
+    "shifted": "Source authority is reassigned for all fact types."
+  },
+  "truth_policy": "Reference truth is chosen before reports and report order is randomized independently.",
+  "hashes": {
+    "dev_reliability": "890e82644b83c3a53d3f0bc33869d77d6f93782be286a952bdfe1aed9861209a",
+    "dev_stress": "1c563f370de25f39bee87f92ed480260d6c2c3da25758a9bec62e2470b7762c7"
+  }
+}

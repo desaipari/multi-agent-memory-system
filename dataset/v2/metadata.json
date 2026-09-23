@@ -1,0 +1,16 @@
+{
+  "version": "verimem_v2_controlled_1",
+  "seed": 42,
+  "truth_definition": "Latent reference truth is generated independently of report order.",
+  "test_policy": "TEST must not be used during development or threshold tuning.",
+  "split_sizes": {
+    "dev": 1800,
+    "calibration": 600,
+    "test": 600
+  },
+  "hashes": {
+    "dev": "db6b7414e1a92c87d9195ac0c610dbc8f1b0c636d4281468856483de4e2403dd",
+    "calibration": "dfc9460e0508b32acfa91d1b29b702405069c68020af4a46b8583e10004c7252",
+    "test_LOCKED": "987da75906114ae2c583b5919d0e6b2bafca4a64d014a9c66a33f1665eeba258"
+  }
+}

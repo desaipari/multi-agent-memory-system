@@ -1,0 +1,194 @@
+{
+  "mem0": {
+    "runs": [
+      {
+        "file": "mem0_benchmark_run_01.json",
+        "overall_accuracy": 0.6111111111111112,
+        "effective_accuracy": 0.6111111111111112,
+        "newer_correct": 0.625,
+        "newer_wrong": 0.6,
+        "api_success": 1.0,
+        "retrieval_coverage": 1.0
+      },
+      {
+        "file": "mem0_benchmark_run_02.json",
+        "overall_accuracy": 0.6666666666666666,
+        "effective_accuracy": 0.6666666666666666,
+        "newer_correct": 0.75,
+        "newer_wrong": 0.6,
+        "api_success": 1.0,
+        "retrieval_coverage": 1.0
+      },
+      {
+        "file": "mem0_benchmark_run_03.json",
+        "overall_accuracy": 0.6111111111111112,
+        "effective_accuracy": 0.6111111111111112,
+        "newer_correct": 0.625,
+        "newer_wrong": 0.6,
+        "api_success": 1.0,
+        "retrieval_coverage": 1.0
+      },
+      {
+        "file": "mem0_benchmark_run_04.json",
+        "overall_accuracy": 0.6111111111111112,
+        "effective_accuracy": 0.6111111111111112,
+        "newer_correct": 0.625,
+        "newer_wrong": 0.6,
+        "api_success": 1.0,
+        "retrieval_coverage": 1.0
+      },
+      {
+        "file": "mem0_benchmark_run_05.json",
+        "overall_accuracy": 0.7222222222222222,
+        "effective_accuracy": 0.7222222222222222,
+        "newer_correct": 0.625,
+        "newer_wrong": 0.8,
+        "api_success": 1.0,
+        "retrieval_coverage": 1.0
+      }
+    ],
+    "overall_accuracy": {
+      "n": 5,
+      "mean": 0.6444444444444445,
+      "sd": 0.04969039949999529,
+      "min": 0.6111111111111112,
+      "max": 0.7222222222222222
+    },
+    "newer_correct": {
+      "n": 5,
+      "mean": 0.65,
+      "sd": 0.05590169943749474,
+      "min": 0.625,
+      "max": 0.75
+    },
+    "newer_wrong_safety": {
+      "n": 5,
+      "mean": 0.64,
+      "sd": 0.08944271909999162,
+      "min": 0.6,
+      "max": 0.8
+    },
+    "api_success": {
+      "n": 5,
+      "mean": 1.0,
+      "sd": 0.0,
+      "min": 1.0,
+      "max": 1.0
+    },
+    "retrieval_coverage": {
+      "n": 5,
+      "mean": 1.0,
+      "sd": 0.0,
+      "min": 1.0,
+      "max": 1.0
+    }
+  },
+  "zep": {
+    "runs": [
+      {
+        "file": "zep_benchmark_run_01.json",
+        "raw_accuracy": 0.5,
+        "current_valid_accuracy": 0.5555555555555556,
+        "raw_newer_correct": 0.5,
+        "raw_newer_wrong": 0.5,
+        "current_newer_correct": 1.0,
+        "current_newer_wrong": 0.2,
+        "api_success": 1.0
+      },
+      {
+        "file": "zep_benchmark_run_02.json",
+        "raw_accuracy": 0.5,
+        "current_valid_accuracy": 0.5555555555555556,
+        "raw_newer_correct": 0.5,
+        "raw_newer_wrong": 0.5,
+        "current_newer_correct": 1.0,
+        "current_newer_wrong": 0.2,
+        "api_success": 1.0
+      },
+      {
+        "file": "zep_benchmark_run_03.json",
+        "raw_accuracy": 0.5,
+        "current_valid_accuracy": 0.5555555555555556,
+        "raw_newer_correct": 0.5,
+        "raw_newer_wrong": 0.5,
+        "current_newer_correct": 1.0,
+        "current_newer_wrong": 0.2,
+        "api_success": 1.0
+      },
+      {
+        "file": "zep_benchmark_run_04.json",
+        "raw_accuracy": 0.5,
+        "current_valid_accuracy": 0.5555555555555556,
+        "raw_newer_correct": 0.5,
+        "raw_newer_wrong": 0.5,
+        "current_newer_correct": 1.0,
+        "current_newer_wrong": 0.2,
+        "api_success": 1.0
+      },
+      {
+        "file": "zep_benchmark_run_05.json",
+        "raw_accuracy": 0.5,
+        "current_valid_accuracy": 0.5555555555555556,
+        "raw_newer_correct": 0.5,
+        "raw_newer_wrong": 0.5,
+        "current_newer_correct": 1.0,
+        "current_newer_wrong": 0.2,
+        "api_success": 1.0
+      }
+    ],
+    "raw_top1_accuracy": {
+      "n": 5,
+      "mean": 0.5,
+      "sd": 0.0,
+      "min": 0.5,
+      "max": 0.5
+    },
+    "current_valid_accuracy": {
+      "n": 5,
+      "mean": 0.5555555555555556,
+      "sd": 0.0,
+      "min": 0.5555555555555556,
+      "max": 0.5555555555555556
+    },
+    "raw_newer_correct": {
+      "n": 5,
+      "mean": 0.5,
+      "sd": 0.0,
+      "min": 0.5,
+      "max": 0.5
+    },
+    "raw_newer_wrong_safety": {
+      "n": 5,
+      "mean": 0.5,
+      "sd": 0.0,
+      "min": 0.5,
+      "max": 0.5
+    },
+    "current_valid_newer_correct": {
+      "n": 5,
+      "mean": 1.0,
+      "sd": 0.0,
+      "min": 1.0,
+      "max": 1.0
+    },
+    "current_valid_newer_wrong_safety": {
+      "n": 5,
+      "mean": 0.2,
+      "sd": 0.0,
+      "min": 0.2,
+      "max": 0.2
+    },
+    "api_success": {
+      "n": 5,
+      "mean": 1.0,
+      "sd": 0.0,
+      "min": 1.0,
+      "max": 1.0
+    }
+  },
+  "notes": {
+    "repeated_runs": "Repeated cloud-system runs measure run-to-run extraction/retrieval variability.",
+    "scenario_independence": "Repeated runs are not additional independent scenarios.",
+    "verimem": "VeriMem uses one deterministic run under the frozen V2 configuration."
+  }
+}

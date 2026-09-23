@@ -1,0 +1,48 @@
+{
+  "blended_weights": {
+    "billing_agent": {
+      "assignment_group": 0.35,
+      "category": 0.36,
+      "impact": 0.208,
+      "opened_date": 0.224,
+      "priority": 0.272,
+      "resolved_by": 0.96,
+      "state": 0.72,
+      "urgency": 0.176,
+      "default": 0.5
+    },
+    "coordinator_agent": {
+      "assignment_group": 0.65,
+      "default": 0.8
+    },
+    "delivery_agent": {
+      "assignment_group": 0.22,
+      "category": 0.852,
+      "impact": 0.92,
+      "opened_date": 0.35,
+      "priority": 0.64,
+      "resolved_by": 0.364,
+      "state": 0.96,
+      "urgency": 0.816,
+      "default": 0.66
+    },
+    "intake_agent": {
+      "assignment_group": 0.782,
+      "category": 0.612,
+      "impact": 0.626,
+      "opened_date": 0.98,
+      "priority": 0.712,
+      "resolved_by": 0.266,
+      "state": 0.288,
+      "urgency": 0.448,
+      "default": 0.7
+    }
+  },
+  "methodology": "60% empirical + 40% expert (sparse: 30/70)",
+  "min_examples_for_full_empirical": 3,
+  "references": [
+    "ITIL v4 framework (expert prior)",
+    "STRATUS NeurIPS 2025 arXiv:2506.02009 (expert prior)",
+    "OpsAgent arXiv:2510.24145 (blending methodology)"
+  ]
+}

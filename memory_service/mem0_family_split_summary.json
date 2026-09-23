@@ -1,0 +1,72 @@
+{
+  "system": "Mem0",
+  "n_runs": 5,
+  "family_definition": {
+    "A/F": [
+      "A",
+      "F"
+    ],
+    "G/H": [
+      "G",
+      "H"
+    ]
+  },
+  "per_run": [
+    {
+      "run": 1,
+      "file": "C:\\Users\\desai\\Downloads\\MemorySystem\\multi-agent-memory-system\\memory_service\\benchmark_runs\\mem0_benchmark_run_01.json",
+      "af_correct": 3,
+      "af_total": 6,
+      "af_accuracy": 0.5,
+      "gh_correct": 8,
+      "gh_total": 12,
+      "gh_accuracy": 0.6666666666666666
+    },
+    {
+      "run": 2,
+      "file": "C:\\Users\\desai\\Downloads\\MemorySystem\\multi-agent-memory-system\\memory_service\\benchmark_runs\\mem0_benchmark_run_02.json",
+      "af_correct": 4,
+      "af_total": 6,
+      "af_accuracy": 0.6666666666666666,
+      "gh_correct": 8,
+      "gh_total": 12,
+      "gh_accuracy": 0.6666666666666666
+    },
+    {
+      "run": 3,
+      "file": "C:\\Users\\desai\\Downloads\\MemorySystem\\multi-agent-memory-system\\memory_service\\benchmark_runs\\mem0_benchmark_run_03.json",
+      "af_correct": 3,
+      "af_total": 6,
+      "af_accuracy": 0.5,
+      "gh_correct": 8,
+      "gh_total": 12,
+      "gh_accuracy": 0.6666666666666666
+    },
+    {
+      "run": 4,
+      "file": "C:\\Users\\desai\\Downloads\\MemorySystem\\multi-agent-memory-system\\memory_service\\benchmark_runs\\mem0_benchmark_run_04.json",
+      "af_correct": 3,
+      "af_total": 6,
+      "af_accuracy": 0.5,
+      "gh_correct": 8,
+      "gh_total": 12,
+      "gh_accuracy": 0.6666666666666666
+    },
+    {
+      "run": 5,
+      "file": "C:\\Users\\desai\\Downloads\\MemorySystem\\multi-agent-memory-system\\memory_service\\benchmark_runs\\mem0_benchmark_run_05.json",
+      "af_correct": 3,
+      "af_total": 6,
+      "af_accuracy": 0.5,
+      "gh_correct": 10,
+      "gh_total": 12,
+      "gh_accuracy": 0.8333333333333334
+    }
+  ],
+  "summary": {
+    "af_mean": 0.5333333333333333,
+    "af_sd": 0.07453559924999298,
+    "gh_mean": 0.7,
+    "gh_sd": 0.07453559924999302
+  }
+}
