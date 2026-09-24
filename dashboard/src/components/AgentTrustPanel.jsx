@@ -42,7 +42,33 @@ export default function AgentTrustPanel({ refreshTrigger = 0 }) {
       setError(null)
 
       const data = await memoryApi.getAgents()
-      setAgents(data.agents || [])
+      const expectedAgents = [
+  "intake_agent",
+  "billing_agent",
+  "delivery_agent",
+  "coordinator_agent",
+]
+
+const receivedAgents = data.agents || []
+
+const normalizedAgents = expectedAgents.map((agentId) => {
+  const existing = receivedAgents.find(
+    (agent) => agent.agent_id === agentId
+  )
+
+  return (
+    existing || {
+      agent_id: agentId,
+      trust_score: 0,
+      reliability_score: 0,
+      total_writes: 0,
+      correct_writes: 0,
+      overturned_writes: 0,
+    }
+  )
+})
+
+setAgents(normalizedAgents)
     } catch (err) {
       console.error("Cannot fetch agents:", err)
       setError("Unable to load agent trust data.")

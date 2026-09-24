@@ -15,11 +15,29 @@ export default function AuditLog({ refreshTrigger = 0 }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
+  const [agentFilter, setAgentFilter] = useState("")
+  const [eventFilter, setEventFilter] = useState("")
+  const [entityFilter, setEntityFilter] = useState("")
+
+  const [dateFrom, setDateFrom] = useState("")
+  const [dateTo, setDateTo] = useState("")
+
+  // Time range dropdown
+  const [timeRange, setTimeRange] = useState("")
+
   const fetchLogs = useCallback(async () => {
     try {
       setError(null)
 
-      const data = await memoryApi.getAuditLog(100)
+      const data = await memoryApi.getAuditLog({
+        limit: 100,
+        agent_id: agentFilter,
+        event_type: eventFilter,
+        entity: entityFilter,
+        date_from: dateFrom,
+        date_to: dateTo,
+      })
+
       setLogs(data.logs || [])
     } catch (err) {
       console.error("Cannot fetch audit log:", err)
@@ -27,7 +45,7 @@ export default function AuditLog({ refreshTrigger = 0 }) {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [agentFilter, eventFilter, entityFilter, dateFrom, dateTo])
 
   useEffect(() => {
     fetchLogs()
@@ -73,8 +91,210 @@ export default function AuditLog({ refreshTrigger = 0 }) {
         </button>
       </div>
 
+      {/* Filters */}
+      <div
+        style={{
+          padding: "14px 20px",
+          borderBottom: "1px solid #e5e7eb",
+        }}
+      >
+        {/* Row 1 - Agent, Event and Entity */}
+        <div
+          style={{
+            display: "flex",
+            gap: "12px",
+            alignItems: "center",
+            marginBottom: "14px",
+            flexWrap: "wrap",
+          }}
+        >
+          <select
+            value={agentFilter}
+            onChange={(e) => setAgentFilter(e.target.value)}
+            style={{
+              flex: 1,
+              minWidth: "220px",
+              padding: "8px 10px",
+              border: "1px solid #d1d5db",
+              borderRadius: "6px",
+            }}
+          >
+            <option value="">All Agents</option>
+            <option value="intake_agent">Intake Agent</option>
+            <option value="billing_agent">Billing Agent</option>
+            <option value="delivery_agent">Delivery Agent</option>
+            <option value="coordinator_agent">
+              Coordinator Agent
+            </option>
+          </select>
+
+          <select
+            value={eventFilter}
+            onChange={(e) => setEventFilter(e.target.value)}
+            style={{
+              flex: 1,
+              minWidth: "220px",
+              padding: "8px 10px",
+              border: "1px solid #d1d5db",
+              borderRadius: "6px",
+            }}
+          >
+            <option value="">All Events</option>
+            <option value="write">Write</option>
+            <option value="corroboration">Corroboration</option>
+            <option value="conflict_detected">
+              Conflict Detected
+            </option>
+            <option value="auto_resolved">
+              Auto Resolved
+            </option>
+            <option value="human_resolved">
+              Human Resolved
+            </option>
+            <option value="action_blocked">
+              Action Blocked
+            </option>
+          </select>
+
+          <input
+            type="text"
+            placeholder="Incident ID (e.g. INC0000099)"
+            value={entityFilter}
+            onChange={(e) => setEntityFilter(e.target.value)}
+            style={{
+              flex: 1,
+              minWidth: "220px",
+              padding: "8px 10px",
+              border: "1px solid #d1d5db",
+              borderRadius: "6px",
+              boxSizing: "border-box",
+            }}
+          />
+        </div>
+
+        {/* Row 2 - Time Range, From Date and To Date */}
+        <div
+          style={{
+            display: "flex",
+            gap: "20px",
+            alignItems: "flex-end",
+            flexWrap: "wrap",
+          }}
+        >
+          {/* Time Range */}
+          <div
+            style={{
+              flex: 1,
+              minWidth: "250px",
+            }}
+          >
+            <label
+              style={{
+                display: "block",
+                marginBottom: "6px",
+                fontSize: "12px",
+                fontWeight: "500",
+                color: "#374151",
+              }}
+            >
+              Time Range
+            </label>
+
+            <select
+              value={timeRange}
+              onChange={(e) => setTimeRange(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "8px 10px",
+                border: "1px solid #d1d5db",
+                borderRadius: "6px",
+                boxSizing: "border-box",
+                backgroundColor: "white",
+              }}
+            >
+              <option value="">All Time</option>
+              <option value="7days">Last 7 Days</option>
+              <option value="30days">Last 30 Days</option>
+              <option value="1year">Last 1 Year</option>
+              <option value="custom">Custom Date Range</option>
+            </select>
+          </div>
+
+          {/* From Date */}
+          <div
+            style={{
+              flex: 1,
+              minWidth: "250px",
+            }}
+          >
+            <label
+              style={{
+                display: "block",
+                marginBottom: "6px",
+                fontSize: "12px",
+                fontWeight: "500",
+                color: "#374151",
+              }}
+            >
+              From Date
+            </label>
+
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "8px 10px",
+                border: "1px solid #d1d5db",
+                borderRadius: "6px",
+                boxSizing: "border-box",
+              }}
+            />
+          </div>
+
+          {/* To Date */}
+          <div
+            style={{
+              flex: 1,
+              minWidth: "250px",
+            }}
+          >
+            <label
+              style={{
+                display: "block",
+                marginBottom: "6px",
+                fontSize: "12px",
+                fontWeight: "500",
+                color: "#374151",
+              }}
+            >
+              To Date
+            </label>
+
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "8px 10px",
+                border: "1px solid #d1d5db",
+                borderRadius: "6px",
+                boxSizing: "border-box",
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
       {error && (
-        <p style={{ color: "#dc2626", padding: "0 20px" }}>
+        <p
+          style={{
+            color: "#dc2626",
+            padding: "0 20px",
+          }}
+        >
           {error}
         </p>
       )}

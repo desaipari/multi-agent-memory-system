@@ -45,10 +45,44 @@ export const memoryApi = {
     return response.data
   },
 
-  getAuditLog: async (limit = 50) => {
-    const response = await api.get(`/memory/audit?limit=${limit}`)
-    return response.data
-  },
+getAuditLog: async ({
+  limit = 100,
+  agent_id = "",
+  event_type = "",
+  entity = "",
+  date_from = "",
+  date_to = "",
+} = {}) => {
+  const params = new URLSearchParams()
+
+  params.append("limit", limit)
+
+  if (agent_id) {
+    params.append("agent_id", agent_id)
+  }
+
+  if (event_type) {
+    params.append("event_type", event_type)
+  }
+
+  if (entity) {
+    params.append("entity", entity)
+  }
+
+  if (date_from) {
+  params.append("date_from", date_from)
+}
+
+if (date_to) {
+  params.append("date_to", date_to)
+}
+
+  const response = await api.get(
+    `/memory/audit?${params.toString()}`
+  )
+
+  return response.data
+},
 
   getActionGateLog: async () => {
     const response = await api.get("/memory/action_gate_log")
